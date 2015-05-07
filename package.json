@@ -1,14 +1,16 @@
 {
-  "name": "starter-kit",
+  "name": "envy-server",
   "version": "0.0.1",
-  "description": "Starter Kit for express projects",
+  "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Trey Griffith <trey@tgriff3.com>",
-  "license": "MIT",
+  "license": "",
   "dependencies": {
-    "express": "^4.12.3"
+    "express": "^4.12.3",
+    "hmmac": "^0.2.0",
+    "mongoose": "^4.0.2"
   }
 }

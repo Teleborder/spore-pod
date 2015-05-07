@@ -1,6 +1,30 @@
+var hmac = require('./config/hmac'),
+    Environment = requier('./models/environment');
+
 function routes(app) {
   app.get('/', function (req, res) {
     res.send("hello");
+  });
+
+  app.get('/apps/:app_id/:env_name', function (req, res, next) {
+    hmac.validate(req, function (valid) {
+      if(valid !== true) {
+        return res.status(401).send("Authorization Failed");
+      }
+
+      Environment.findOne({
+        app: req.params.app_id,
+        name: req.params.env_name
+      }).exec(function (err, env) {
+        if(err) return next(err);
+
+        var out = env.pairs.map(function (pair) {
+          return pair.key + '=' + pair.value;
+        }).join("\n");
+
+        res.send(out);
+      });
+    });
   });
 }
 
