@@ -1,0 +1,14 @@
+{
+  "name": "starter-kit",
+  "version": "0.0.1",
+  "description": "Starter Kit for express projects",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Trey Griffith <trey@tgriff3.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.12.3"
+  }
+}
