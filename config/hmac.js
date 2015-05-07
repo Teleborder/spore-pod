@@ -11,4 +11,9 @@ var hmmac = new Hmmac({
   scheme: Hmmac.schemes.load('plain')
 });
 
+hmac.getKey = function (req) {
+  return this.config.schemes.parseAuthorization.call(this, req).key;
+};
+
+
 module.exports = hmmac;

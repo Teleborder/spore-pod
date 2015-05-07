@@ -1,10 +1,6 @@
 var mongoose = require('mongoose');
 
 var userSchema = new mongoose.Schema({
-  key: {
-    type: String,
-    required: true
-  },
   secret: {
     type: String,
     required: true
@@ -12,11 +8,11 @@ var userSchema = new mongoose.Schema({
 });
 
 userSchema.methods.getSecretByKey = function (key, callback) {
-  this.findOne({ key: key }).exec(function (err, user) {
+  this.findOne({ _id: key }).exec(function (err, user) {
     if(err) return callback(err);
     if(!user) return callback(new Error("No such user"));
     callback(null, {
-      key: user.key,
+      key: user._id,
       secret: user.secret
     });
   });

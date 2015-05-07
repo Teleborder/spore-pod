@@ -12,9 +12,12 @@ function routes(app) {
         return res.status(401).send("Authorization Failed");
       }
 
+      var userId = hmac.getKey(req);
+
       Environment.findOne({
         app: req.params.app_id,
-        name: req.params.env_name
+        name: req.params.env_name,
+        users: { $in: [userId] }
       }).exec(function (err, env) {
         if(err) return next(err);
 
