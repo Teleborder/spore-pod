@@ -62,22 +62,13 @@ function routes(app) {
         name: req.body.name
       });
 
-      var environments = ['production', 'staging', 'development'].map(function (envName) {
-        return new Environment({
-          app: app._id,
-          name: envName
-        });
-      });
-
       var permission = new Permission({
         app: app._id,
         user: req.user._id,
-        environments: environments.map(function (env) {
-          return env._id;
-        })
+        environments: []
       });
 
-      async.each([app, permission].concat(environments), function (doc, cb) {
+      async.each([app, permission], function (doc, cb) {
         doc.save(cb);
       }, function (err) {
         if(err) return next(err);
@@ -96,14 +87,6 @@ function routes(app) {
       if(err) return next(err);
 
       res.json(render('app', app));
-    });
-  });
-
-  app.get('/apps/:app_name/envs', loginWithKey, function (req, res, next) {
-    Environment.forApp(req.permissions, req.params.app_name, function (err, envs) {
-      if(err) return next(err);
-
-      res.json(render('environment', envs || []));
     });
   });
 
