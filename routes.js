@@ -6,7 +6,7 @@ var User = require('./models/user'),
 
 function routes(app) {
   app.get('/', function (req, res) {
-    res.redirect('/apps');
+    res.send("This is Envy.");
   });
   
   app.post('/signup', function (req, res, next) {
@@ -15,10 +15,6 @@ function routes(app) {
     });
 
     user.password = user.generateHash(req.body.password);
-
-    if(req.body.publicKey) {
-      user.publicKey = req.body.publicKey;
-    }
 
     user.save(function(err) {
       if (err) {
@@ -33,7 +29,26 @@ function routes(app) {
       }
 
       res.json({
-        key: user.key
+        user: {
+          key: user.key
+        }
+      });
+    });
+  });
+
+  app.post('/login', function (req, res, next) {
+    User.findOne({
+      email: req.body.email
+    }).exec(function (err, user) {
+      if(!err && !user) {
+        err = new Error("No Such User");
+      }
+      if(err) return next(err);
+
+      res.json({
+        user: {
+          key: user.key
+        }
       });
     });
   });
@@ -78,7 +93,11 @@ function routes(app) {
       }, function (err) {
         if(err) return next(err);
 
-        res.redirect('/apps/' + app.name);
+        res.json({
+          app: {
+            name: app.name
+          }
+        });
       });
     });
   });
@@ -131,8 +150,10 @@ function routes(app) {
       if(err) return next(err);
 
       res.json({
-        name: env.name,
-        values: env.values
+        environment: {
+          name: env.name,
+          values: env.values
+        }
       });  
     });
   });
@@ -162,16 +183,21 @@ function routes(app) {
       }
       if(err) return next(err);
 
-      if(!req.body.key) return next(new Error("A key is required"));
-      if(!req.body.value) return next(new Error("A value is required"));
-
       env.values = env.values || {};
-      env.values[req.body.key] = req.body.value;
+
+      Object.keys(req.body || {}).forEach(function (key) {
+        env.values[key] = req.body[key];
+      });
 
       env.save(function (err) {
         if(err) return next(err);
 
-        res.redirect('/apps/' + req.params.app_name + '/envs/' + req.params.env_name);
+        res.json({
+          environment: {
+            name: env.name,
+            values: env.values
+          }
+        });
       });
     });
   });
@@ -181,8 +207,10 @@ function loginWithKey(req, res, next) {
   User.findOne({
     key: req.query.key
   }, function (err, user) {
+    if(!err && !user) {
+      err = new Error("No Such User");
+    }
     if(err) return next(err);
-    if(!user) return next(new Error("No Such User"));
 
     req.user = user;
 
