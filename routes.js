@@ -187,6 +187,8 @@ function routes(app) {
         env.values[key] = req.body[key];
       });
 
+      env.markModified('values');
+
       toSave.push(env);
 
       async.each(toSave, function (doc, callback) {
