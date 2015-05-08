@@ -1,6 +1,10 @@
 var mongoose = require('mongoose');
 
 var appSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  }
 });
 
 

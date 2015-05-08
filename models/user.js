@@ -1,22 +1,18 @@
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+    uuid = require('node-uuid').v4;
 
 var userSchema = new mongoose.Schema({
-  secret: {
+  key: {
     type: String,
     required: true
   }
 });
 
-userSchema.methods.getSecretByKey = function (key, callback) {
-  this.findOne({ _id: key }).exec(function (err, user) {
-    if(err) return callback(err);
-    if(!user) return callback(new Error("No such user"));
-    callback(null, {
-      key: user._id,
-      secret: user.secret
-    });
-  });
-};
+userSchema.pre('validate', function (next) {
+  if(this.key) return next();
+  this.key = uuid();
+  next();
+});
 
 var User = mongoose.model('User', userSchema);
 

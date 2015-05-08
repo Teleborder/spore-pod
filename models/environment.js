@@ -12,13 +12,7 @@ var environmentSchema = new mongoose.Schema({
   pairs: [{
     key: String,
     value: String
-  }],
-  users: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }
-  ]
+  }]
 });
 
 
