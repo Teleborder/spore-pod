@@ -131,7 +131,7 @@ function routes(app) {
   });
 
   app.get('/apps/:app_name/envs/:env_name/.envy', loginWithKey, function (req, res, next) {
-    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
+    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env, app) {
       if(err) return next(err);
 
       if(!env) {
@@ -140,7 +140,10 @@ function routes(app) {
         };
       }
 
-      var out = Object.keys(env.values || {}).map(function (key) {
+      var out = "ENVY_APP_NAME=" + app.name + "\n";
+      out += "ENVY_ENV_NAME=" + env.name + "\n";
+
+      out += Object.keys(env.values || {}).map(function (key) {
         return key + '=' + env.values[key];
       }).join("\n");
 
