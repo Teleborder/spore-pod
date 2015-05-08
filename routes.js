@@ -90,6 +90,18 @@ function routes(app) {
     });
   });
 
+  app.get('/apps/:app_name/users', loginWithKey, function (req, res, next) {
+    User.forApp(req.permissions, req.params.app_name, function (err, users) {
+      if(err) return next(err);
+
+      res.json(render('user', users));
+    });
+  });
+
+  app.post('/apps/:app_name/users', loginWithKey, function (req, res, next) {
+    // Invite users to an app
+  });
+
   app.get('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
     Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
       if(err) return next(err);
@@ -104,6 +116,18 @@ function routes(app) {
 
       res.json(render('environment', env)); 
     });
+  });
+
+  app.get('/apps/:app_name/envs/:env_name/users', loginWithKey, function (req, res, next) {
+    User.forEnvironment(req.permissions, req.params.app_name, req.params.env_name, function (err, users) {
+      if(err) return next(err);
+
+      res.json(render('user', users));
+    });
+  });
+
+  app.post('/apps/:app_name/envs/:env_name/users', loginWithKey, function (req, res, next) {
+    // Invite users to an environment
   });
 
   app.get('/apps/:app_name/envs/:env_name/.envy', loginWithKey, function (req, res, next) {

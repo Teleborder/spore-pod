@@ -1,7 +1,9 @@
 var mongoose = require('mongoose'),
     validate = require('mongoose-validate'),
     bcrypt = require('bcryptjs'),
-    uuid = require('node-uuid').v4;
+    uuid = require('node-uuid').v4,
+    App = require('./app'),
+    Permission = require('./permission');
 
 var userSchema = new mongoose.Schema({
   email: {
@@ -23,7 +25,48 @@ var userSchema = new mongoose.Schema({
   }
 });
 
-// Password/Token
+userSchema.statics.forApp = function (permissions, appName, callback) {
+  App.byName(permissions, appName, function (err, app) {
+    if(!err && !app) {
+      err = new Error("No Such App");
+      err.status = 404;
+    }
+    if(err) return callback(err);
+
+    Permission.find({
+      app: app._id
+    })
+    .populate('user')
+    .exec(function (err, perms) {
+      if(err) return callback(err);
+
+      callback(null, perms.map(function (perm) {
+        return perm.user;
+      }));
+    });
+  });
+};
+
+userSchema.statics.forEnvironment = function (permissions, appName, envName, callback) {
+  Environment.byName(permissions, appName, envName, function (err, env, app) {
+    Permission.find({
+      app: app._id,
+      environment: {
+        $in: [env._id]
+      }
+    })
+    .populate('user')
+    .exec(function (err, perms) {
+      if(err) return callback(err);
+
+      callback(null, perms.map(function (perm) {
+        return perm.user;
+      }));
+    });
+  });
+};
+
+// Password
 
 // generating a hash
 userSchema.methods.generateHash = function(password) {
@@ -34,6 +77,8 @@ userSchema.methods.generateHash = function(password) {
 userSchema.methods.validPassword = function(password) {
     return bcrypt.compareSync(password, this.password);
 };
+
+// Generate API Key
 
 userSchema.pre('validate', function (next) {
   if(this.key) return next();
