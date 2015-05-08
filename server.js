@@ -7,7 +7,7 @@ var express = require('express'),
 
 settings(app);
 middleware(app);
-routes(app);
+routes(app, passport);
 
 mongoose.connect(process.env.MONGO_URI);
 
