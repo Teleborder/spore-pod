@@ -28,7 +28,7 @@ function routes(app) {
         return next(err);
       }
 
-      res.json(render('user', user));
+      res.json(serialize('user', user));
     });
   });
 
@@ -41,7 +41,7 @@ function routes(app) {
       }
       if(err) return next(err);
 
-      res.json(render('user', user));
+      res.json(serialize('user', user));
     });
   });
   
@@ -49,7 +49,7 @@ function routes(app) {
     App.forPermissions(req.permissions, function (err, apps) {
       if(err) return next(err);
 
-      res.json(render('app', apps || []));
+      res.json(serialize('app', apps || []));
     });
   });
 
@@ -73,7 +73,7 @@ function routes(app) {
       }, function (err) {
         if(err) return next(err);
 
-        res.json(render('app', app));
+        res.json(serialize('app', app));
       });
     });
   });
@@ -86,7 +86,7 @@ function routes(app) {
       }
       if(err) return next(err);
 
-      res.json(render('app', app));
+      res.json(serialize('app', app));
     });
   });
 
@@ -94,7 +94,7 @@ function routes(app) {
     User.forApp(req.permissions, req.params.app_name, function (err, users) {
       if(err) return next(err);
 
-      res.json(render('user', users));
+      res.json(serialize('user', users));
     });
   });
 
@@ -114,7 +114,7 @@ function routes(app) {
 
       env.values = env.values || {};
 
-      res.json(render('environment', env)); 
+      res.json(serialize('environment', env)); 
     });
   });
 
@@ -122,7 +122,7 @@ function routes(app) {
     User.forEnvironment(req.permissions, req.params.app_name, req.params.env_name, function (err, users) {
       if(err) return next(err);
 
-      res.json(render('user', users));
+      res.json(serialize('user', users));
     });
   });
 
@@ -182,7 +182,7 @@ function routes(app) {
       }, function (err) {
         if(err) return next(err);
 
-        res.json(render('environment', env));
+        res.json(serialize('environment', env));
       });
     });
   });
@@ -210,7 +210,7 @@ function loginWithKey(req, res, next) {
   });
 }
 
-function render(type, data) {
+function serialize(type, data) {
   var out = {},
       types = {
         user: {
