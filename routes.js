@@ -107,24 +107,17 @@ function routes(app) {
     });
   });
 
-  // create a new environment for an app
-  app.post('/apps/:app_name/envs', loginWithKey, function (req, res, next) {
-    Environment.byName(req.permissions, req.params.app_name, req.body.name, function (err, env) {
-      if(err) return next(err);
-      if(env) return next(new Error("Environment already exists"));
-
-      // TODO 
-    });
-
-  });
-
   app.get('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
     Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
-      if(!err && !env) {
-        err = new Error("No Such Environment");
-        err.status = 404;
-      }
       if(err) return next(err);
+
+      if(!env) {
+        env = {
+          name: req.params.env_name
+        };
+      }
+
+      env.values = env.values || {};
 
       res.json(render('environment', env)); 
     });
@@ -132,11 +125,13 @@ function routes(app) {
 
   app.get('/apps/:app_name/envs/:env_name/.envy', loginWithKey, function (req, res, next) {
     Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
-      if(!err && !env) {
-        err = new Error("No Such Environment");
-        err.status = 404;
-      }
       if(err) return next(err);
+
+      if(!env) {
+        env = {
+          name: req.params.env_name
+        };
+      }
 
       var out = Object.keys(env.values || {}).map(function (key) {
         return key + '=' + env.values[key];
@@ -147,13 +142,25 @@ function routes(app) {
   });
 
   // Create/Update an environment variable
+  // This creates the environment with a permission
+  // for the current user if it doesn't already exist
   app.post('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
-    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
-      if(!err && !env) {
-        err = new Error("No Such Environment");
-        err.status = 404;
-      }
+    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env, app) {
       if(err) return next(err);
+
+      var toSave = [];
+
+      if(!env) {
+        env = new Environment({
+          name: req.params.env_name,
+          app: app._id
+        });
+        toSave.push(new Permission({
+          app: app._id,
+          user: req.user._id,
+          environments: [env._id]
+        }));
+      }
 
       env.values = env.values || {};
 
@@ -161,7 +168,11 @@ function routes(app) {
         env.values[key] = req.body[key];
       });
 
-      env.save(function (err) {
+      toSave.push(env);
+
+      async.each(toSave, function (doc, callback) {
+        doc.save(callback);
+      }, function (err) {
         if(err) return next(err);
 
         res.json(render('environment', env));

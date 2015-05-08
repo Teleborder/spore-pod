@@ -55,7 +55,7 @@ environmentSchema.statics.byName = function (permissions, appName, envName, call
       }
     }, function (err, env) {
       if(err) return callback(err);
-      callback(null, env);
+      callback(null, env, app);
     });
   });
 };
