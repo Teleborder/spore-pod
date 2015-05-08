@@ -53,11 +53,12 @@ module.exports = function(passport) {
             
             // save the user
             newUser.save(function(err) {
+                console.log("new user saved, err", err);
                 if (err) {
                     if(err.name === 'ValidationError' && err.errors) {
                         for(var p in err.errors) {
                             if(err.errors.hasOwnProperty(p)) {
-                                req.flash('error', err.errors[p].type);
+                                req.flash('error', err.errors[p].type || err.errors[p].message);
                             }
                         }
                         return done(null, false);

@@ -32,7 +32,7 @@ userSchema.methods.validPassword = function(password) {
     return bcrypt.compareSync(password, this.password);
 };
 
-userSchema.pre('save', function (next) {
+userSchema.pre('validate', function (next) {
   if(this.key) return next();
   this.key = uuid();
   next();

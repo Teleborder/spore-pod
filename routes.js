@@ -6,6 +6,9 @@ var User = require('./models/user'),
 
 function routes(app) {
   app.get('/', function (req, res) {
+    if(req.isAuthenticated()) {
+      return res.redirect('/apps');
+    }
     res.redirect('/signup');
   });
 
@@ -65,31 +68,30 @@ function routes(app) {
 
   app.get('/signup', function (req, res) {
     if(req.isAuthenticated()) {
-      // req.flash('info', 'You are already logged in.');
+      req.flash('info', 'You are already logged in.');
       return res.redirect('/');
     }
-    res.render('signup');
     res.render('signup');
   });
 
   app.post('/signup', app.passport.authenticate('local-signup', {
     successRedirect : '/',
     failureRedirect : '/signup', // redirect back to the signup page if there is an error
-    failureFlash : false
+    failureFlash : true
   }));
 
   app.get('/login', function (req, res) {
     if(req.isAuthenticated()) {
-      // req.flash('info', 'You are already logged in.');
+      req.flash('info', 'You are already logged in.');
       return res.redirect('/');
     }
     res.render('login');
   });
 
-  app.post('/login', passport.authenticate('local-login', {
+  app.post('/login', app.passport.authenticate('local-login', {
     successRedirect : '/',
     failureRedirect : '/login', // redirect back to the signup page if there is an error
-    failureFlash : false
+    failureFlash : true
   }));
 
   app.get('/logout', function (req, res) {
@@ -181,7 +183,7 @@ function isLoggedIn(req, res, next) {
     return next();
 
   // if they aren't redirect them to the home page
-  // req.flash('error', "You're not logged in.");
+  req.flash('error', "You're not logged in.");
   res.redirect('/');
 }
 
