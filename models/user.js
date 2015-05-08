@@ -17,6 +17,9 @@ var userSchema = new mongoose.Schema({
   key: {
     type: String,
     required: true
+  },
+  publicKey: {
+    type: String
   }
 });
 

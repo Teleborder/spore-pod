@@ -1,4 +1,5 @@
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+    App = require('./app');
 
 var environmentSchema = new mongoose.Schema({
   app: {
@@ -9,12 +10,57 @@ var environmentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  pairs: [{
-    key: String,
-    value: String
-  }]
+  values: {}
 });
 
+environmentSchema.statics.forApp = function(permissions, appName, callback) {
+  var Environment = this;
+
+  var envIds = permissions.reduce(function (prev, perm) {
+    return prev.concat(perm.environments);
+  }, []);
+
+  App.byName(permissions, appName, function (err, app) {
+    if(err) return callback(err);
+    if(!app) return callback(new Error("No Such App"));
+
+    Environment.find({
+      app: app._id,
+      _id: {
+        $in: envIds
+      }
+    }, function (err, envs) {
+      if(err) return callback(err);
+      callback(null, envs);
+    });
+  });
+};
+
+environmentSchema.statics.byName = function (permissions, appName, envName, callback) {
+  var Environment = this;
+
+  var envIds = permissions.reduce(function (prev, perm) {
+    return prev.concat(perm.environments);
+  }, []);
+
+  App.byName(permissions, appName, function (err, app) {
+    if(err) return callback(err);
+    if(!app) return callback(new Error("No Such App"));
+
+    Environment.findOne({
+      name: envName,
+      app: app._id,
+      _id: {
+        $in: envIds
+      }
+    }, function (err, env) {
+      if(err) return callback(err);
+      callback(null, env);
+    });
+  });
+};
+
+environmentSchema.index({ name: 1, app: 1}, { unique: true });
 
 var Environment = mongoose.model('Environment', environmentSchema);
 

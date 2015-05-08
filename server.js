@@ -27,9 +27,11 @@ if (app.get('env') === 'development') {
     } else {
       res.status(500);
     }
-    res.render('error', {
-      message: err.message,
-      error: err
+    res.json({
+      error: {
+        message: err.message,
+        stack: err.stack
+      }
     });
   });
 }
@@ -44,9 +46,10 @@ app.use(function(err, req, res, next) {
   } else {
     res.status(500);
   }
-  res.render('error', {
-    message: err.message,
-    error: err
+  res.json({
+    error: {
+      message: err.message
+    }
   });
 });
 

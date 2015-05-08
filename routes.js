@@ -6,185 +6,195 @@ var User = require('./models/user'),
 
 function routes(app) {
   app.get('/', function (req, res) {
-    if(req.isAuthenticated()) {
-      return res.redirect('/apps');
-    }
-    res.redirect('/signup');
+    res.redirect('/apps');
   });
-
-  // API
-
-  app.get('/api/apps/:app_name/:env_name', function (req, res, next) {
-    User.findOne({
-      key: req.query.key
-    }, function (err, user) {
-      if(err) return next(err);
-      if(!user) return next(new Error("No Such User"));
-
-      Permission.find({
-        user: user._id
-      }, function (err, permissions) {
-        if(err) return next(err);
-
-        var appIds = [];
-        var envIds = [];
-
-        permissions.forEach(function (perm) {
-          appIds.push(perm.app);
-          envIds.push.apply(envIds, perm.environments);
-        });
-
-        App.findOne({
-          name: req.params.app_name,
-          _id: {
-            $in: appIds
-          }
-        }).exec(function (err, app) {
-          if(err) return next(err);
-          if(!app) return next(new Error("No Such App"));
-
-          Environment.findOne({
-            app: app._id,
-            name: req.params.env_name,
-            _id: {
-              $in: envIds
-            }
-          }, function (err, env) {
-            if(err) return next(err);
-            if(!env) return next(new Error("No Such Environment"));
-
-            var out = env.pairs.map(function (pair) {
-              return pair.key + '=' + pair.value;
-            }).join("\n");
-
-            res.send(out);
-          });
-        });
-      });
-    });
-  });
-
-  // USER
-
-  app.get('/signup', function (req, res) {
-    if(req.isAuthenticated()) {
-      req.flash('info', 'You are already logged in.');
-      return res.redirect('/');
-    }
-    res.render('signup');
-  });
-
-  app.post('/signup', app.passport.authenticate('local-signup', {
-    successRedirect : '/',
-    failureRedirect : '/signup', // redirect back to the signup page if there is an error
-    failureFlash : true
-  }));
-
-  app.get('/login', function (req, res) {
-    if(req.isAuthenticated()) {
-      req.flash('info', 'You are already logged in.');
-      return res.redirect('/');
-    }
-    res.render('login');
-  });
-
-  app.post('/login', app.passport.authenticate('local-login', {
-    successRedirect : '/',
-    failureRedirect : '/login', // redirect back to the signup page if there is an error
-    failureFlash : true
-  }));
-
-  app.get('/logout', function (req, res) {
-    req.logout();
-    res.redirect('/');
-  });
-
-  // APP ADMIN
   
-  app.get('/apps', isLoggedIn, function (req, res, next) {
-    Permission.find({
-      user: req.user._id
-    }, function (err, permissions) {
-      if(err) return next(err);
+  app.post('/signup', function (req, res, next) {
+    var user = new User({
+      email: req.body.email
+    });
 
-      var appIds = permissions.map(function (perm) {
-        return perm.app;
-      });
+    user.password = user.generateHash(req.body.password);
 
-      App.find({
-        _id: {
-          $in: appIds
+    if(req.body.publicKey) {
+      user.publicKey = req.body.publicKey;
+    }
+
+    user.save(function(err) {
+      if (err) {
+        if(err.name === 'ValidationError' && err.errors) {
+          return next(err);
+        } else if(err.code === 11000) {
+          if(err.index.slice(-1 * 'email_1') === 'email_1') {
+            return next(new Error("Account with that email already exists"));
+          }
         }
-      }).exec(function (err, apps) {
-        if(err) return next(err);
+        return next(err);
+      }
 
-        res.json(apps);
+      res.json({
+        key: user.key
+      });
+    });
+  });
+  
+  app.get('/apps', loginWithKey, function (req, res, next) {
+    App.forPermissions(req.permissions, function (err, apps) {
+      if(err) return next(err);
+      res.json({
+        apps: apps.map(function (app) {
+          return app.name;
+        })
       });
     });
   });
 
-  app.post('/apps', isLoggedIn, function (req, res, next) {
-    var app = new App({
-      name: req.body.name
-    });
+  app.post('/apps', loginWithKey, function (req, res, next) {
+    App.byName(req.permissions, req.body.name, function (err, app) {
+      if(err) return next(err);
+      if(app) return next(new Error("App already exists"));
 
-    var environments = ['production', 'staging', 'development'].map(function (envName) {
-      return new Environment({
+      app = new App({
+        name: req.body.name
+      });
+
+      var environments = ['production', 'staging', 'development'].map(function (envName) {
+        return new Environment({
+          app: app._id,
+          name: envName
+        });
+      });
+
+      var permission = new Permission({
         app: app._id,
-        name: envName
+        user: req.user._id,
+        environments: environments.map(function (env) {
+          return env._id;
+        })
       });
-    });
 
-    var permission = new Permission({
-      app: app._id,
-      user: req.user._id,
-      environments: environments
-    });
+      async.each([app, permission].concat(environments), function (doc, cb) {
+        doc.save(cb);
+      }, function (err) {
+        if(err) return next(err);
 
-    async.each([app, permission].concat(environments), function (doc, cb) {
-      doc.save(cb);
-    }, function (err) {
-      if(err) return next(err);
-
-      res.redirect('/apps/' + app.name);
+        res.redirect('/apps/' + app.name);
+      });
     });
   });
 
-  app.get('/apps/:app_name', isLoggedIn, function (req, res, next) {
-    Permission.find({
-      user: req.user._id
-    }, function (err, permissions) {
+  app.get('/apps/:app_name', loginWithKey, function (req, res, next) {
+    App.byName(req.permissions, req.params.app_name, function (err, app) {
+      if(!err && !app) {
+        err = new Error("No Such App");
+        err.status = 404;
+      }
       if(err) return next(err);
 
-      var appIds = permissions.map(function (perm) {
-        return perm.app;
-      });
-
-      App.findOne({
-        name: req.params.app_name,
-        _id: {
-          $in: appIds
+      res.json({
+        app: {
+          name: app.name
         }
-      }).exec(function (err, app) {
-        if(err) return next(err);
-        if(!app) return next(new Error("No Such App"));
+      });
+    });
+  });
 
-        res.json(app);
+  app.get('/apps/:app_name/envs', loginWithKey, function (req, res, next) {
+    Environment.forApp(req.permissions, req.params.app_name, function (err, envs) {
+      if(err) return next(err);
+
+      res.json({
+        environments: envs.map(function (env) {
+          return env.name;
+        })
+      }); 
+    });
+  });
+
+  // create a new environment for an app
+  app.post('/apps/:app_name/envs', loginWithKey, function (req, res, next) {
+    Environment.byName(req.permissions, req.params.app_name, req.body.name, function (err, env) {
+      if(err) return next(err);
+      if(env) return next(new Error("Environment already exists"));
+
+      // TODO 
+    });
+
+  });
+
+  app.get('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
+    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
+      if(!err && !env) {
+        err = new Error("No Such Environment");
+        err.status = 404;
+      }
+      if(err) return next(err);
+
+      res.json({
+        name: env.name,
+        values: env.values
+      });  
+    });
+  });
+
+  app.get('/apps/:app_name/envs/:env_name/.envy', loginWithKey, function (req, res, next) {
+    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
+      if(!err && !env) {
+        err = new Error("No Such Environment");
+        err.status = 404;
+      }
+      if(err) return next(err);
+
+      var out = Object.keys(env.values || {}).map(function (key) {
+        return key + '=' + env.values[key];
+      }).join("\n");
+
+      res.send(out);
+    });
+  });
+
+  // Create/Update an environment variable
+  app.post('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
+    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
+      if(!err && !env) {
+        err = new Error("No Such Environment");
+        err.status = 404;
+      }
+      if(err) return next(err);
+
+      if(!req.body.key) return next(new Error("A key is required"));
+      if(!req.body.value) return next(new Error("A value is required"));
+
+      env.values = env.values || {};
+      env.values[req.body.key] = req.body.value;
+
+      env.save(function (err) {
+        if(err) return next(err);
+
+        res.redirect('/apps/' + req.params.app_name + '/envs/' + req.params.env_name);
       });
     });
   });
 }
 
-// route middleware to make sure a user is logged in
-function isLoggedIn(req, res, next) {
+function loginWithKey(req, res, next) {
+  User.findOne({
+    key: req.query.key
+  }, function (err, user) {
+    if(err) return next(err);
+    if(!user) return next(new Error("No Such User"));
 
-  // if user is authenticated in the session, carry on 
-  if (req.isAuthenticated())
-    return next();
+    req.user = user;
 
-  // if they aren't redirect them to the home page
-  req.flash('error', "You're not logged in.");
-  res.redirect('/');
+    Permission.find({
+      user: user._id
+    }, function (err, permissions) {
+      if(err) return next(err);
+
+      req.permissions = permissions;
+      next();
+    });
+  });
 }
 
 
