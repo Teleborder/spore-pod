@@ -28,11 +28,7 @@ function routes(app) {
         return next(err);
       }
 
-      res.json({
-        user: {
-          key: user.key
-        }
-      });
+      res.json(render('user', user));
     });
   });
 
@@ -45,22 +41,15 @@ function routes(app) {
       }
       if(err) return next(err);
 
-      res.json({
-        user: {
-          key: user.key
-        }
-      });
+      res.json(render('user', user));
     });
   });
   
   app.get('/apps', loginWithKey, function (req, res, next) {
     App.forPermissions(req.permissions, function (err, apps) {
       if(err) return next(err);
-      res.json({
-        apps: apps.map(function (app) {
-          return app.name;
-        })
-      });
+
+      res.json(render('app', apps || []));
     });
   });
 
@@ -93,11 +82,7 @@ function routes(app) {
       }, function (err) {
         if(err) return next(err);
 
-        res.json({
-          app: {
-            name: app.name
-          }
-        });
+        res.json(render('app', app));
       });
     });
   });
@@ -110,11 +95,7 @@ function routes(app) {
       }
       if(err) return next(err);
 
-      res.json({
-        app: {
-          name: app.name
-        }
-      });
+      res.json(render('app', app));
     });
   });
 
@@ -122,11 +103,7 @@ function routes(app) {
     Environment.forApp(req.permissions, req.params.app_name, function (err, envs) {
       if(err) return next(err);
 
-      res.json({
-        environments: envs.map(function (env) {
-          return env.name;
-        })
-      }); 
+      res.json(render('environment', envs || []));
     });
   });
 
@@ -149,12 +126,7 @@ function routes(app) {
       }
       if(err) return next(err);
 
-      res.json({
-        environment: {
-          name: env.name,
-          values: env.values
-        }
-      });  
+      res.json(render('environment', env)); 
     });
   });
 
@@ -192,12 +164,7 @@ function routes(app) {
       env.save(function (err) {
         if(err) return next(err);
 
-        res.json({
-          environment: {
-            name: env.name,
-            values: env.values
-          }
-        });
+        res.json(render('environment', env));
       });
     });
   });
@@ -223,6 +190,37 @@ function loginWithKey(req, res, next) {
       next();
     });
   });
+}
+
+function render(type, data) {
+  var out = {},
+      types = {
+        user: {
+          list: 'email',
+          item: ['email', 'key']
+        },
+        app: {
+          list: 'name',
+          item: ['name']
+        },
+        environment: {
+          list: 'name',
+          item: ['name', 'values']
+        }
+      };
+
+  if(Array.isArray(data)) {
+    out[type + 's'] = data.map(function (datum) {
+      return datum[types[type].list];
+    });
+  } else {
+    out[type] = {};
+    types[type].item.forEach(function (prop) {
+      out[type][prop] = data[prop];
+    });
+  }
+  
+  return out;
 }
 
 
