@@ -99,7 +99,7 @@ function routes(app) {
   });
 
   app.post('/apps/:app_name/users', loginWithKey, function (req, res, next) {
-    // Invite users to an app
+    // TODO: Invite user to an app
   });
 
   app.get('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
@@ -127,7 +127,7 @@ function routes(app) {
   });
 
   app.post('/apps/:app_name/envs/:env_name/users', loginWithKey, function (req, res, next) {
-    // Invite users to an environment
+    // TODO: Invite user to an environment
   });
 
   app.get('/apps/:app_name/envs/:env_name/.envy', loginWithKey, function (req, res, next) {
@@ -155,18 +155,27 @@ function routes(app) {
     Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env, app) {
       if(err) return next(err);
 
-      var toSave = [];
+      var toSave = [],
+          permission;
 
       if(!env) {
         env = new Environment({
           name: req.params.env_name,
           app: app._id
         });
-        toSave.push(new Permission({
-          app: app._id,
-          user: req.user._id,
-          environments: [env._id]
-        }));
+
+        // find the permission for this app
+        req.permissions.forEach(function (perm) {
+          if(perm.app.toString() === app._id.toString()) {
+            permission = perm;
+          }
+        });
+
+        // add permission for the new environment
+        permission.environments = permission.environments || [];
+        permission.environments.push(env._id);
+
+        toSave.push(permission);
       }
 
       env.values = env.values || {};

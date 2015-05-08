@@ -15,6 +15,7 @@ var permissionSchema = new mongoose.Schema({
   }]
 });
 
+permissionSchema.index({ user: 1, app: 1}, { unique: true });
 
 var Permission = mongoose.model('Permission', permissionSchema);
 
