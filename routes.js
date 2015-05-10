@@ -21,7 +21,8 @@ function routes(app) {
         if(err.name === 'ValidationError' && err.errors) {
           return next(err);
         } else if(err.code === 11000) {
-          if(err.index.slice(-1 * 'email_1') === 'email_1') {
+          console.log(err);
+          if(err.errmsg.indexOf('email_1') > -1) {
             return next(new Error("Account with that email already exists"));
           }
         }
@@ -36,8 +37,9 @@ function routes(app) {
     User.findOne({
       email: req.body.email
     }).exec(function (err, user) {
-      if(!err && !user) {
-        err = new Error("No Such User");
+      if(!err && (!user || !user.validPassword(req.body.password))) {
+        err = new Error("Invalid email or password");
+        err.status = 401;
       }
       if(err) return next(err);
 
