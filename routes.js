@@ -107,6 +107,7 @@ function routes(app) {
         }
         if(err) return next(err);
 
+        // add a permission for this user to use this app?
         app.owner = user._id;
 
         res.json(serialize('app', app));
