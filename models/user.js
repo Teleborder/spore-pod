@@ -66,6 +66,12 @@ userSchema.statics.forEnvironment = function (permissions, appName, envName, cal
   });
 };
 
+userSchema.statics.byEmail = function (email, callback) {
+  User.findOne({
+    email: email
+  }).exec(callback);
+};
+
 // Password
 
 // generating a hash

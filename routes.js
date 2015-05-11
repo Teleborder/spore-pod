@@ -35,9 +35,7 @@ function routes(app) {
   });
 
   app.post('/login', function (req, res, next) {
-    User.findOne({
-      email: req.body.email
-    }).exec(function (err, user) {
+    User.byEmail(req.body.email, function (err, user) {
       if(!err && (!user || !user.validPassword(req.body.password))) {
         err = new Error("Invalid email or password");
         err.status = 401;
@@ -91,6 +89,28 @@ function routes(app) {
       if(err) return next(err);
 
       res.json(serialize('app', app));
+    });
+  });
+
+  // Transfer ownership
+  app.post('/apps/:app_name', loginWithKey, function (req, res, next) {
+    App.byName(req.user._id, req.params.app_name, function (err, app) {
+      if(!err && !app) {
+        err = new Error("No Such App");
+        err.status = 404;
+      }
+      if(err) return next(err);
+
+      User.byEmail(req.params.email, function (err, user) {
+        if(!err && !user) {
+          err = new Error("No Such User");
+        }
+        if(err) return next(err);
+
+        app.owner = user._id;
+
+        res.json(serialize('app', app));
+      });
     });
   });
 

@@ -22,10 +22,7 @@ appSchema.statics.forPermissions = function (permissions, callback) {
     _id: {
       $in: appIds
     }
-  }).exec(function (err, apps) {
-    if(err) return callback(err);
-    callback(null, apps);
-  });
+  }).exec(callback);
 };
 
 appSchema.statics.byName = function (permissions, appName, callback) {
@@ -40,10 +37,14 @@ appSchema.statics.byName = function (permissions, appName, callback) {
     _id: {
       $in: appIds
     }
-  }).exec(function (err, app) {
-    if(err) return callback(err);
-    callback(null, app);
-  });
+  }).exec(callback);
+};
+
+appSchema.statics.byOwner = function (ownerId, appName, callback) {
+  App.findOne({
+    name: appName,
+    owner: ownerId
+  }).exec(callback);
 };
 
 var App = mongoose.model('App', appSchema);
