@@ -2,6 +2,7 @@ var User = require('./models/user'),
     App = require('./models/app'),
     Permission = require('./models/permission'),
     Environment = require('./models/environment'),
+    serialize = require('./serialize');
     async = require('async');
 
 function routes(app) {
@@ -61,7 +62,8 @@ function routes(app) {
       if(app) return next(new Error("App already exists"));
 
       app = new App({
-        name: req.body.name
+        name: req.body.name,
+        owner: req.user._id
       });
 
       var permission = new Permission({
@@ -225,37 +227,5 @@ function loginWithKey(req, res, next) {
     });
   });
 }
-
-function serialize(type, data) {
-  var out = {},
-      types = {
-        user: {
-          list: 'email',
-          item: ['email', 'key']
-        },
-        app: {
-          list: 'name',
-          item: ['name']
-        },
-        environment: {
-          list: 'name',
-          item: ['name', 'values']
-        }
-      };
-
-  if(Array.isArray(data)) {
-    out[type + 's'] = data.map(function (datum) {
-      return datum[types[type].list];
-    });
-  } else {
-    out[type] = {};
-    types[type].item.forEach(function (prop) {
-      out[type][prop] = data[prop];
-    });
-  }
-  
-  return out;
-}
-
 
 module.exports = routes;
