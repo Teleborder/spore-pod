@@ -55,33 +55,31 @@ function routes(app) {
   });
 
   app.post('/apps', loginWithKey, function (req, res, next) {
-    App.byName(req.permissions, req.body.name, function (err, app) {
+    var app,
+        permission;
+
+    app = new App({
+      name: req.body.name,
+      owner: req.user._id
+    });
+
+    permission = new Permission({
+      app: app._id,
+      user: req.user._id,
+      environments: []
+    });
+
+    async.each([app, permission], function (doc, cb) {
+      doc.save(cb);
+    }, function (err) {
       if(err) return next(err);
-      if(app) return next(new Error("App already exists"));
 
-      app = new App({
-        name: req.body.name,
-        owner: req.user._id
-      });
-
-      var permission = new Permission({
-        app: app._id,
-        user: req.user._id,
-        environments: []
-      });
-
-      async.each([app, permission], function (doc, cb) {
-        doc.save(cb);
-      }, function (err) {
-        if(err) return next(err);
-
-        res.json(serialize('app', app));
-      });
+      res.json(serialize('app', app));
     });
   });
 
-  app.get('/apps/:app_name', loginWithKey, function (req, res, next) {
-    App.byName(req.permissions, req.params.app_name, function (err, app) {
+  app.get('/apps/:app_id', loginWithKey, function (req, res, next) {
+    App.byId(req.permissions, req.params.app_id, function (err, app) {
       if(!err && !app) {
         err = new Error("No Such App");
         err.status = 404;
@@ -93,8 +91,8 @@ function routes(app) {
   });
 
   // Transfer ownership
-  app.post('/apps/:app_name', loginWithKey, function (req, res, next) {
-    App.byName(req.user._id, req.params.app_name, function (err, app) {
+  app.post('/apps/:app_id', loginWithKey, function (req, res, next) {
+    App.byId(req.user._id, req.params.app_id, function (err, app) {
       if(!err && !app) {
         err = new Error("No Such App");
         err.status = 404;
@@ -115,20 +113,20 @@ function routes(app) {
     });
   });
 
-  app.get('/apps/:app_name/users', loginWithKey, function (req, res, next) {
-    User.forApp(req.permissions, req.params.app_name, function (err, users) {
+  app.get('/apps/:app_id/users', loginWithKey, function (req, res, next) {
+    User.forApp(req.permissions, req.params.app_id, function (err, users) {
       if(err) return next(err);
 
       res.json(serialize('user', users));
     });
   });
 
-  app.post('/apps/:app_name/users', loginWithKey, function (req, res, next) {
+  app.post('/apps/:app_id/users', loginWithKey, function (req, res, next) {
     // TODO: Invite user to an app
   });
 
-  app.get('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
-    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env) {
+  app.get('/apps/:app_id/envs/:env_name', loginWithKey, function (req, res, next) {
+    Environment.byName(req.permissions, req.params.app_id, req.params.env_name, function (err, env) {
       if(err) return next(err);
 
       if(!env) {
@@ -143,44 +141,23 @@ function routes(app) {
     });
   });
 
-  app.get('/apps/:app_name/envs/:env_name/users', loginWithKey, function (req, res, next) {
-    User.forEnvironment(req.permissions, req.params.app_name, req.params.env_name, function (err, users) {
+  app.get('/apps/:app_id/envs/:env_name/users', loginWithKey, function (req, res, next) {
+    User.forEnvironment(req.permissions, req.params.app_id, req.params.env_name, function (err, users) {
       if(err) return next(err);
 
       res.json(serialize('user', users));
     });
   });
 
-  app.post('/apps/:app_name/envs/:env_name/users', loginWithKey, function (req, res, next) {
+  app.post('/apps/:app_id/envs/:env_name/users', loginWithKey, function (req, res, next) {
     // TODO: Invite user to an environment
-  });
-
-  app.get('/apps/:app_name/envs/:env_name/.envy', loginWithKey, function (req, res, next) {
-    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env, app) {
-      if(err) return next(err);
-
-      if(!env) {
-        env = {
-          name: req.params.env_name
-        };
-      }
-
-      var out = "ENVY_APP_NAME=" + app.name + "\n";
-      out += "ENVY_ENV_NAME=" + env.name + "\n";
-
-      out += Object.keys(env.values || {}).map(function (key) {
-        return key + '=' + env.values[key];
-      }).join("\n");
-
-      res.send(out);
-    });
   });
 
   // Create/Update an environment variable
   // This creates the environment with a permission
   // for the current user if it doesn't already exist
-  app.post('/apps/:app_name/envs/:env_name', loginWithKey, function (req, res, next) {
-    Environment.byName(req.permissions, req.params.app_name, req.params.env_name, function (err, env, app) {
+  app.post('/apps/:app_id/envs/:env_name', loginWithKey, function (req, res, next) {
+    Environment.byName(req.permissions, req.params.app_id, req.params.env_name, function (err, env, app) {
       if(err) return next(err);
 
       var toSave = [],

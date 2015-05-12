@@ -25,24 +25,31 @@ appSchema.statics.forPermissions = function (permissions, callback) {
   }).exec(callback);
 };
 
-appSchema.statics.byName = function (permissions, appName, callback) {
-  var App = this;
+appSchema.statics.byId = function (permissions, appId, callback) {
+  var App = this,
+      allowedAppId;
 
-  var appIds = permissions.map(function (perm) {
-    return perm.app;
-  });
+  for(var i=0; i<permissions.length; i++) {
+    if(permissions[i].app.toString() === appId.toString()) {
+      allowedAppId = appId;
+      break;
+    }
+  }
+
+  if(!allowedAppId) {
+    return process.nextTick(function () {
+      callback();
+    });
+  }
 
   App.findOne({
-    name: appName,
-    _id: {
-      $in: appIds
-    }
+    _id: allowedAppId
   }).exec(callback);
 };
 
-appSchema.statics.byOwner = function (ownerId, appName, callback) {
+appSchema.statics.byOwner = function (ownerId, appId, callback) {
   App.findOne({
-    name: appName,
+    _id: appId,
     owner: ownerId
   }).exec(callback);
 };

@@ -13,14 +13,14 @@ var environmentSchema = new mongoose.Schema({
   values: {}
 });
 
-environmentSchema.statics.forApp = function(permissions, appName, callback) {
+environmentSchema.statics.forApp = function(permissions, appId, callback) {
   var Environment = this;
 
   var envIds = permissions.reduce(function (prev, perm) {
     return prev.concat(perm.environments);
   }, []);
 
-  App.byName(permissions, appName, function (err, app) {
+  App.byId(permissions, appId, function (err, app) {
     if(err) return callback(err);
     if(!app) return callback(new Error("No Such App"));
 
@@ -36,14 +36,14 @@ environmentSchema.statics.forApp = function(permissions, appName, callback) {
   });
 };
 
-environmentSchema.statics.byName = function (permissions, appName, envName, callback) {
+environmentSchema.statics.byName = function (permissions, appId, envName, callback) {
   var Environment = this;
 
   var envIds = permissions.reduce(function (prev, perm) {
     return prev.concat(perm.environments);
   }, []);
 
-  App.byName(permissions, appName, function (err, app) {
+  App.byId(permissions, appId, function (err, app) {
     if(err) return callback(err);
     if(!app) return callback(new Error("No Such App"));
 

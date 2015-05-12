@@ -9,7 +9,7 @@ function serialize(type, data) {
         },
         app: {
           list: 'name',
-          item: ['name', 'owner.email']
+          item: ['_id', 'name', 'owner.email']
         },
         environment: {
           list: 'name',
