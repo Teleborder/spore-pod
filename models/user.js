@@ -3,7 +3,8 @@ var mongoose = require('mongoose'),
     bcrypt = require('bcryptjs'),
     uuid = require('node-uuid').v4,
     App = require('./app'),
-    Permission = require('./permission');
+    Permission = require('./permission'),
+    randomStr = require('./utils/random_string');
 
 var userSchema = new mongoose.Schema({
   email: {
@@ -20,8 +21,13 @@ var userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  publicKey: {
+  token: {
     type: String
+  },
+  verified: {
+    type: Boolean,
+    required: true,
+    default: false
   }
 });
 
@@ -118,6 +124,13 @@ userSchema.methods.generateKey = function () {
   return key;
 };
 
+userSchema.methods.generateToken = function () {
+  var token = randomStr(7);
+  this.token = this.generateHash(token);
+
+  return token;
+};
+
 userSchema.methods.generateHash = function(password) {
   return bcrypt.hashSync(password, 8);
 };
@@ -128,6 +141,10 @@ userSchema.methods.validPassword = function(password) {
 
 userSchema.methods.validKey = function (key) {
   return bcrypt.compareSync(key, this.key);
+};
+
+userSchema.methods.validToken = function (token) {
+  return this.token && bcrypt.compareSync(token, this.token);
 };
 
 var User = mongoose.model('User', userSchema);

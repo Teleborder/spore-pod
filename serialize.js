@@ -4,7 +4,8 @@ var types = {
   user: {
     list: 'email',
     item: {
-      email: 'email'
+      email: 'email',
+      verified: 'verified'
     }
   },
   key: {

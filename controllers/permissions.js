@@ -19,6 +19,24 @@ exports.list = function (req, res, next) {
 
 // Grant read access for an environment (and invite to the pod if they aren't a user)
 exports.create = function (req, res, next) {
+
+  // users need to be verified before granting permissions to other users
+  if(!req.user.verified) {
+    var token = req.user.generateToken();
+    req.user.save(function (err) {
+      if(err) return next(err);
+
+      email.confirm(req.user, token, function (err) {
+        if(err) return next(err);
+
+        next(new Error("You need to confirm your email address before granting permissions to other users. A confirmation email has been sent to " + req.user.email));
+      });
+    });
+
+    return;
+  }
+
+
   // TODO: Invite user to an environment
 };
 

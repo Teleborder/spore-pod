@@ -10,6 +10,25 @@ exports.create = function (req, res, next) {
   });
 };
 
+exports.verify = function (req, res, next) {
+  User.byEmail(req.params.email, function (err, user) {
+
+    if(!err && (!user || !user.validToken(req.body.token))) {
+      err = new Error("Invalid email or token");
+      err.status = 401;
+    }
+    if(err) return next(err);
+
+    user.verified = true;
+
+    user.save(function (err) {
+      if(err) return next(err);
+
+      res.json(serialize('user', user));
+    });
+  });
+};
+
 // generate a new api key
 exports.createKey = function (req, res, next) {
   User.byEmail(req.params.email, function (err, user) {
