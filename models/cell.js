@@ -50,3 +50,5 @@ cellSchema.statics.create = function (uid, params, callback) {
 };
 
 var Cell = mongoose.model('Cell', cellSchema);
+
+module.exports = Cell;

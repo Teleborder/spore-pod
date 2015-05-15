@@ -34,6 +34,9 @@ userSchema.statics.create = function (email, password, callback) {
   var user,
       User = this;
 
+  if(!email) return callback(new Error("Email is required"));
+  if(!password) return callback(new Error("Password is required"));
+
   user = new User({
     email: email
   });
@@ -41,7 +44,7 @@ userSchema.statics.create = function (email, password, callback) {
   user.password = user.generateHash(password);
 
   // we throw this key away right now - they need to
-  // hit the keys endpoint to retrieve it
+  // hit the /keys endpoint to retrieve it
   user.generateKey();
 
   user.save(function(err) {
@@ -52,7 +55,7 @@ userSchema.statics.create = function (email, password, callback) {
         err = new Error("Account with that email already exists");
         err.status = 400;
       }
-      return next(err);
+      return callback(err);
     }
 
     callback(null, user);
@@ -82,7 +85,7 @@ userSchema.statics.byEmail = function (email, callback) {
   }).exec(callback);
 };
 
-userSchema.statics.loginWithKey = function (email, key) {
+userSchema.statics.loginWithKey = function (email, key, callback) {
   var User = this;
 
   User.byEmail(email, function (err, user) {
@@ -96,12 +99,12 @@ userSchema.statics.loginWithKey = function (email, key) {
       err = new Error("No Such User");
       err.status = 401;
     }
-    if(err) return next(err);
+    if(err) return callback(err);
 
     Permission.find({
       user: user._id
     }, function (err, permissions) {
-      if(err) return next(err);
+      if(err) return callback(err);
 
       callback(null, user, permissions);
     });
@@ -116,7 +119,7 @@ userSchema.methods.generateKey = function () {
 };
 
 userSchema.methods.generateHash = function(password) {
-  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+  return bcrypt.hashSync(password, 8);
 };
 
 userSchema.methods.validPassword = function(password) {

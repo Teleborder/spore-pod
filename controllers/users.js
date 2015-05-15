@@ -12,7 +12,8 @@ exports.create = function (req, res, next) {
 
 // generate a new api key
 exports.createKey = function (req, res, next) {
-  User.byEmail(req.body.email, function (err, user) {
+  User.byEmail(req.params.email, function (err, user) {
+
     if(!err && (!user || !user.validPassword(req.body.password))) {
       err = new Error("Invalid email or password");
       err.status = 401;
