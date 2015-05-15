@@ -25,44 +25,51 @@ var userSchema = new mongoose.Schema({
   }
 });
 
-userSchema.statics.forApp = function (permissions, appName, callback) {
-  App.byName(permissions, appName, function (err, app) {
-    if(!err && !app) {
-      err = new Error("No Such App");
-      err.status = 404;
+userSchema.virtual('keys')
+  .get(function () {
+    return [this.get('key')];
+  });
+
+userSchema.statics.create = function (email, password, callback) {
+  var user;
+
+  user = new User({
+    email: email
+  });
+
+  user.password = user.generateHash(password);
+
+  // we throw this key away right now - they need to
+  // hit the keys endpoint to retrieve it
+  user.generateKey();
+
+  user.save(function(err) {
+    if (err) {
+      if(err.name === 'ValidationError' && err.errors) {
+        // do something here?
+      } else if(err.code === 11000 && err.errmsg && err.errmsg.indexOf('email_1') > -1) {
+        err = new Error("Account with that email already exists");
+        err.status = 400;
+      }
+      return next(err);
     }
-    if(err) return callback(err);
 
-    Permission.find({
-      app: app._id
-    })
-    .populate('user')
-    .exec(function (err, perms) {
-      if(err) return callback(err);
-
-      callback(null, perms.map(function (perm) {
-        return perm.user;
-      }));
-    });
+    callback(null, user);
   });
 };
 
-userSchema.statics.forEnvironment = function (permissions, appName, envName, callback) {
-  Environment.byName(permissions, appName, envName, function (err, env, app) {
-    Permission.find({
-      app: app._id,
-      environment: {
-        $in: [env._id]
-      }
-    })
-    .populate('user')
-    .exec(function (err, perms) {
-      if(err) return callback(err);
+userSchema.statics.forEnv = function (appId, envName, callback) {
+  Permission.find({
+    app: appId,
+    environment: envName
+  })
+  .populate('user')
+  .exec(function (err, perms) {
+    if(err) return callback(err);
 
-      callback(null, perms.map(function (perm) {
-        return perm.user;
-      }));
-    });
+    callback(null, perms.map(function (perm) {
+      return perm.user;
+    }));
   });
 };
 
@@ -72,25 +79,24 @@ userSchema.statics.byEmail = function (email, callback) {
   }).exec(callback);
 };
 
-// Password
+userSchema.methods.generateKey = function () {
+  var key = uuid();
+  this.key = this.generateHash(key);
 
-// generating a hash
+  return key;
+};
+
 userSchema.methods.generateHash = function(password) {
-    return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
 };
 
-// checking if password is valid
 userSchema.methods.validPassword = function(password) {
-    return bcrypt.compareSync(password, this.password);
+  return bcrypt.compareSync(password, this.password);
 };
 
-// Generate API Key
-
-userSchema.pre('validate', function (next) {
-  if(this.key) return next();
-  this.key = uuid();
-  next();
-});
+userSchema.methods.validKey = function (key) {
+  return bcrypt.compareSync(key, this.key);
+};
 
 var User = mongoose.model('User', userSchema);
 

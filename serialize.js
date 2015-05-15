@@ -5,27 +5,54 @@ function serialize(type, data) {
       types = {
         user: {
           list: 'email',
-          item: ['email', 'key']
+          item: {
+            email: 'email'
+          }
+        },
+        cell: {
+          list: 'uid',
+          item: {
+            id: 'uid',
+            key: 'key',
+            value: 'value'
+          }
         },
         app: {
-          list: 'name',
-          item: ['_id', 'name', 'owner.email']
-        },
-        environment: {
-          list: 'name',
-          item: ['name', 'values']
+          list: 'uid',
+          item: {
+            id: 'uid', 
+            name: 'name',
+            owner: 'owner.email'
+          }
         }
       };
 
   if(Array.isArray(data)) {
+
     out[pluralize(type)] = data.map(function (datum) {
-      return getProp(datum, types[type].list);
+      if(types[type]) {
+        return getProp(datum, types[type].list);
+      }
+      
+      return datum;
     });
+
   } else {
+
     out[type] = {};
-    types[type].item.forEach(function (prop) {
-      setProp(out[type], prop, getProp(data, prop));
-    });
+
+    if(types[type]) {
+
+      Object.keys(types[type].item).forEach(function (prop) {
+        var src = types[type].item[prop];
+
+        out[type][prop] = getProp(data, src);
+      });
+
+    } else {
+      out[type] = data;
+    }
+
   }
   
   return out;
@@ -33,20 +60,6 @@ function serialize(type, data) {
 
 function pluralize(str) {
   return str + 's';
-}
-
-function setProp(obj, prop, val) {
-  var firstDot = prop.indexOf('.');
-
-  if(firstDot === -1) {
-    return obj[prop] = val;
-  }
-
-  if(!obj[strBefore(prop, firstDot)]) {
-    obj[strBefore(prop, firstDot)] = {};
-  }
-
-  return setProp(obj[strBefore(prop, firstDot)], strAfter(prop, firstDot), val);
 }
 
 function getProp(obj, prop) {
@@ -57,7 +70,14 @@ function getProp(obj, prop) {
   }
 
   if(firstDot === -1) {
+    if(typeof obj[prop] === 'function') {
+      return obj[prop]();
+    }
     return obj[prop];
+  }
+
+  if(typeof obj[strBefore(prop, firstDot)] === 'function') {
+    return getProp(obj[strBefore(prop, firstDot)](), strAfter(prop, firstDot));
   }
 
   return getProp(obj[strBefore(prop, firstDot)], strAfter(prop, firstDot));

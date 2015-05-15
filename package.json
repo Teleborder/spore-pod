@@ -1,12 +1,12 @@
 {
-  "name": "spore-server",
+  "name": "spore-pod",
   "version": "0.0.2",
   "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Trey Griffith <trey@tgriff3.com>",
+  "author": "Trey Griffith <trey@teleborder.com>",
   "license": "",
   "dependencies": {
     "async": "^0.9.0",
