@@ -1,92 +1,89 @@
 module.exports = serialize;
 
+var types = {
+  user: {
+    list: 'email',
+    item: {
+      email: 'email'
+    }
+  },
+  key: {
+    list: '@',
+    item: '@'
+  },
+  cell: {
+    list: 'uid',
+    item: {
+      id: 'uid',
+      key: 'key',
+      value: 'value'
+    }
+  },
+  app: {
+    list: 'uid',
+    item: {
+      id: 'uid', 
+      name: 'name',
+      owner: 'owner.email'
+    }
+  }
+};
+
 function serialize(type, data) {
-  var out = {},
-      types = {
-        user: {
-          list: 'email',
-          item: {
-            email: 'email'
-          }
-        },
-        cell: {
-          list: 'uid',
-          item: {
-            id: 'uid',
-            key: 'key',
-            value: 'value'
-          }
-        },
-        app: {
-          list: 'uid',
-          item: {
-            id: 'uid', 
-            name: 'name',
-            owner: 'owner.email'
-          }
-        }
-      };
+  if(!types[type]) throw new Error("`" + type + "` is not supported for serialization.");
 
   if(Array.isArray(data)) {
+    return serialize.arr(type, data);
+  }
 
-    out[pluralize(type)] = data.map(function (datum) {
-      if(types[type]) {
-        return getProp(datum, types[type].list);
-      }
-      
-      return datum;
+  return serialize.obj(type, data);
+}
+
+serialize.obj = function (type, obj) {
+  var out = {};
+
+  if(typeof types[type].item === 'object') {
+    out[type] = {};
+
+    Object.keys(types[type].item).forEach(function (prop) {
+      var src = types[type].item[prop];
+
+      out[type][prop] = getProp(obj, src);
     });
 
   } else {
-
-    out[type] = {};
-
-    if(types[type]) {
-
-      Object.keys(types[type].item).forEach(function (prop) {
-        var src = types[type].item[prop];
-
-        out[type][prop] = getProp(data, src);
-      });
-
-    } else {
-      out[type] = data;
-    }
-
+    out[type] = getProp(obj, types[type].item);
   }
-  
+
   return out;
-}
+};
+
+serialize.arr = function (type, arr) {
+  var out = {};
+
+  out[pluralize(type)] = arr.map(function (obj) {
+    return getProp(obj, types[type].list);
+  });
+
+  return out;
+};
 
 function pluralize(str) {
   return str + 's';
 }
 
 function getProp(obj, prop) {
-  var firstDot = prop.indexOf('.');
+  var props;
 
-  if(obj === undefined) {
-    return obj;
+  if(obj === undefined) return obj;
+  if(!prop) return obj;
+
+  props = prop.split('.');
+  prop = props.shift();
+
+  if(prop !== '@') {
+    obj = obj[prop];
   }
 
-  if(firstDot === -1) {
-    if(typeof obj[prop] === 'function') {
-      return obj[prop]();
-    }
-    return obj[prop];
-  }
-
-  if(typeof obj[strBefore(prop, firstDot)] === 'function') {
-    return getProp(obj[strBefore(prop, firstDot)](), strAfter(prop, firstDot));
-  }
-
-  return getProp(obj[strBefore(prop, firstDot)], strAfter(prop, firstDot));
-}
-
-function strBefore(str, index) {
-  return str.substring(0, index);
-}
-
-function strAfter(str, index) {
-  return str.substring(index + 1);
+  return getProp(obj, props.join('.'));
 }
