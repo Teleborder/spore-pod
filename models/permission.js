@@ -63,6 +63,10 @@ permissionSchema.statics.removeForEnv = function (userId, appId, envName, callba
   });
 };
 
+permissionSchema.methods.canAccess = function (envName) {
+  return this.environments.indexOf(envName) > -1;
+};
+
 var Permission = mongoose.model('Permission', permissionSchema);
 
 module.exports = Permission;

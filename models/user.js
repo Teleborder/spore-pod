@@ -31,7 +31,8 @@ userSchema.virtual('keys')
   });
 
 userSchema.statics.create = function (email, password, callback) {
-  var user;
+  var user,
+      User = this;
 
   user = new User({
     email: email
@@ -74,9 +75,37 @@ userSchema.statics.forEnv = function (appId, envName, callback) {
 };
 
 userSchema.statics.byEmail = function (email, callback) {
+  var User = this;
+
   User.findOne({
     email: email
   }).exec(callback);
+};
+
+userSchema.statics.loginWithKey = function (email, key) {
+  var User = this;
+
+  User.byEmail(email, function (err, user) {
+    // verify email exists
+    if(!err && !user) {
+      err = new Error("No Such User");
+      err.status = 401;
+    }
+    // verify email matches api key
+    if(!err && user && !user.validKey(key)) {
+      err = new Error("No Such User");
+      err.status = 401;
+    }
+    if(err) return next(err);
+
+    Permission.find({
+      user: user._id
+    }, function (err, permissions) {
+      if(err) return next(err);
+
+      callback(null, user, permissions);
+    });
+  });
 };
 
 userSchema.methods.generateKey = function () {
