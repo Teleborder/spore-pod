@@ -19,6 +19,7 @@ exports.create = function (req, res, next) {
   );
 };
 
+// Show a single cell
 exports.show = function (req, res, next) {
   Cell.findOne({
     uid: req.params.cell_id,

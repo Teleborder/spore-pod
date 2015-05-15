@@ -57,9 +57,8 @@ appSchema.statics.byPermissionsAndId = function (permissions, appId, callback) {
     if(err) return callbacK(err);
 
     for(var i=0; i<permissions.length; i++) {
-      if(permissions[i].app.toString() === app.id) {
-        callback(null, app, permissions[i]);
-        break;
+      if(permissions[i].app.toString() === app._id.toString()) {
+        return callback(null, app, permissions[i]);
       }
     }
 

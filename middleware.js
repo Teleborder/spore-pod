@@ -5,6 +5,13 @@ var path = require('path'),
 
 function middleware(app) {
 
+  if(app.get('env') === 'development') {
+    app.use(function (req, res, next) {
+      console.log(req.method + " " + req.originalUrl);
+      next();
+    });
+  }
+
   // Only allow secure requests in production
   app.use(function (req, res, next) {
     // heroku sets `x-forwarded-proto` when proxying

@@ -43,21 +43,23 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  console.log("PRODUCTION ERROR ENCOUNTERED");
-  console.log(err);
-  console.log(err.stack);
-  if(err.status) {
-    res.status(err.status);
-  } else {
-    res.status(500);
-  }
-  res.json({
-    error: {
-      message: err.message
+if(app.get('env') === 'production') {
+  app.use(function(err, req, res, next) {
+    console.log("PRODUCTION ERROR ENCOUNTERED");
+    console.log(err);
+    console.log(err.stack);
+    if(err.status) {
+      res.status(err.status);
+    } else {
+      res.status(500);
     }
+    res.json({
+      error: {
+        message: err.message
+      }
+    });
   });
-});
+}
 
 mongoose.connect(process.env.MONGO_URI);
 
