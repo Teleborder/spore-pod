@@ -25,6 +25,10 @@ exports.show = function (req, res, next) {
     app: req.app._id,
     environment: req.params.env_name
   }).exec(function (err, cell) {
+    if(!err && !cell) {
+      err = new Error("No Such Cell");
+      err.status = 404;
+    }
     if(err) return next(err);
 
     res.json(serialize('cell', cell));

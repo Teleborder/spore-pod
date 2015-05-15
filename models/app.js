@@ -37,7 +37,7 @@ appSchema.statics.create = function (uid, params, callback) {
 
   permission = new Permission({
     app: app._id,
-    user: app.owner._id,
+    user: params.owner,
     environments: []
   });
 

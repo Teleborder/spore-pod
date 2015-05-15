@@ -50,7 +50,7 @@ function appAccess(req, res, next) {
     if(err) return next(err);
 
     req.app = app;
-    req.appPermission = permision;
+    req.appPermission = permission;
 
     next();
   });
