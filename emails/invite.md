@@ -20,4 +20,4 @@ Paste the below into your shell to accept the invitation:
 spore accept [[TOKEN]]
 ```
 
-Let us know if you have any issues -> https://github.com/spore-sh/spore-pod
+Let us know if you have any [issues](https://github.com/spore-sh/spore-pod)!
