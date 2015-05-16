@@ -27,7 +27,8 @@ exports.confirm = function (user, token, callback) {
   subject = "Confirm your Spore account";
   message = template(confirmTemplate, {
     token: token,
-    email: email
+    email: email,
+    greeting: greeting()
   });
 
   send(email, subject, message, callback);
@@ -42,18 +43,25 @@ exports.invite = function (params, callback) {
     token: params.token,
     appName: params.app.name,
     fromEmail: params.from.email,
-    email: params.to
+    email: params.to,
+    greeting: greeting()
   });
 
   send(params.to, subject, message, callback);
 };
+
+function greeting() {
+  var greetings = ["Howdy", "Hola", "Hiya"];
+
+  return greetings[Math.floor(Math.random()*greetings.length)];
+}
 
 function template(temp, content) {
   content = content || {};
   Object.keys(content).forEach(function (key) {
     var KEY = key.toUpperCase();
 
-    var re = new RegExp('\\[\\[' + KEY + '\\]\\]', 'g');
+    var re = new RegExp('{{' + KEY + '}}', 'g');
     console.log(re);
     temp = temp.replace(re, content[key]);
   });
