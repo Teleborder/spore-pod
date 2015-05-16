@@ -168,7 +168,7 @@ userSchema.methods.verifyEmail = function (email, callback) {
 userSchema.methods.generateConfirmation = function (message, callback) {
   var user = this;
 
-  message += " A confirmation email has been sent to " + req.user.email;
+  message += " A confirmation email has been sent to " + user.email;
 
   var token = user.generateToken();
 
