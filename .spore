@@ -1,10 +1,16 @@
 {
   "name": "spore-pod",
-  "id": "0efa27b9-4835-4d09-bcc3-c48f05b02a46",
+  "id": "bc1faee0-8fff-409e-9c3f-3cd065412e68",
   "envs": {
-    "development": {},
-    "staging": {},
-    "production": {}
+    "development": {
+      "MANDRILL_APIKEY": "fcdb1d08-ed04-4ada-8d91-10a65c6b58fb"
+    },
+    "staging": {
+      "MANDRILL_APIKEY": "1b0a1bdb-8074-484b-827a-94670ae13520"
+    },
+    "production": {
+      "MANDRILL_APIKEY": "ae619f24-3478-4753-a24c-ad56755af2af"
+    }
   },
   "__comments": [
     "This file was automatically generated using Spore (http://spore.sh)",

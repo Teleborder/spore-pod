@@ -128,7 +128,7 @@ userSchema.statics.loginWithKey = function (email, key, callback) {
     if(err) return callback(err);
 
     Membership.find({
-      user: user._id
+      member: user._id
     }, function (err, memberships) {
       if(err) return callback(err);
 
