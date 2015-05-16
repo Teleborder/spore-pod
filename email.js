@@ -1,4 +1,4 @@
-var fs = require('fs-extra'),
+var fs = require('fs'),
     path = require('path'),
     mandrill = require('mandrill-api/mandrill'),
     mandrillClient = new mandrill.Mandrill(process.env.MANDRILL_APIKEY),

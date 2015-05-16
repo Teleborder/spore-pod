@@ -4,7 +4,7 @@ var mongoose = require('mongoose'),
     uuid = require('node-uuid').v4,
     App = require('./app'),
     Membership = require('./membership'),
-    randomStr = require('./utils/random_string'),
+    randomStr = require('../utils/random_string'),
     email = require('../email');
 
 var userSchema = new mongoose.Schema({
@@ -69,7 +69,7 @@ userSchema.statics.create = function (email, password, callback) {
   user = User.build(email, password);
   user.signedUp = true;
 
-  user.save(_handleCreate);
+  user.save(_handleCreate(callback));
 };
 
 function _handleCreate(callback) {

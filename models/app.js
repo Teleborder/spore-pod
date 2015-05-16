@@ -26,8 +26,7 @@ appSchema.path('uid').validate(function (uid) {
 
 appSchema.statics.create = function (uid, params, callback) {
   var app,
-      App = this,
-      err;
+      App = this;
 
   app = new App({
     uid: uid,
@@ -35,23 +34,19 @@ appSchema.statics.create = function (uid, params, callback) {
     owner: params.owner
   });
 
-  membership = new Membership({
-    app: app._id,
-    user: params.owner,
-    environments: []
-  });
-
-  async.eachSeries([app, membership], function (doc, cb) {
-    doc.save(cb);
-  }, function (err) {
+  app.save(function (err) {
     if(err) return callback(err);
 
-    callback(null, app);
+    Membership.ensureForApp(params.owner, app._id, function (err) {
+      if(err) return callback(err);
+
+      callback(null, app);
+    });
   });
 };
 
 appSchema.statics.byMembershipsAndId = function (memberships, appId, callback) {
-  App.findOne({
+  this.findOne({
     uid: appId
   }).exec(function (err, app) {
     if(err) return callbacK(err);
@@ -67,19 +62,19 @@ appSchema.statics.byMembershipsAndId = function (memberships, appId, callback) {
 };
 
 appSchema.statics.byId = function (appId, callback) {
-  App.findOne({
+  this.findOne({
     uid: appId
   }).exec(callback); 
 };
 
 appSchema.statics.byOwner = function (ownerId, callback) {
-  App.find({
+  this.find({
     owner: ownerId
   }).exec(callback);
 };
 
 appSchema.statics.byOwnerAndId = function (ownerId, appId, callback) {
-  App.findOne({
+  this.findOne({
     uid: appId,
     owner: ownerId
   }).exec(callback);
