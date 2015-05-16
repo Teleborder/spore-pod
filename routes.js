@@ -3,7 +3,8 @@ var User = require('./models/user'),
     users = require('./controllers/users'),
     apps = require('./controllers/apps'),
     permissions = require('./controllers/permissions'),
-    cells = require('./controllers/cells');
+    cells = require('./controllers/cells'),
+    invites = require('./controllers/invites');
 
 module.exports = routes;
 
@@ -21,10 +22,13 @@ function routes(app) {
   app.post('/apps', loginWithKey, apps.create);
   app.post('/apps/:app_id', loginWithKey, appOwner, apps.update);
 
-  app.get('/apps/:app_id/envs/:env_name/users', loginWithKey, appAccess, envAccess, permissions.list);
-  app.post('/apps/:app_id/envs/:env_name/invites', loginWithKey, appAccess, envAccess, permissions.createInvite);
-  app.post('/apps/:app_id/envs/:env_name/users', loginWithKey, permissions.create);
-  app.delete('/apps/:app_id/envs/:env_name/users/:email', loginWithKey, appAccess, envAccess, permissions.delete);
+  app.get('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, permissions.list);
+  app.post('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, permissions.create);
+  app.post('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, permissions.update);
+  app.patch('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, permissions.update);
+  app.delete('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, appAccess, envAccess, permissions.delete);
+  
+  app.get('/invites/:token', invites.show);
 
   app.post('/apps/:app_id/envs/:env_name/cells', loginWithKey, loadApp, cells.create);
   app.get('/apps/:app_id/envs/:env_name/cells/:cell_id', loginWithKey, appAccess, envAccess, cells.show);

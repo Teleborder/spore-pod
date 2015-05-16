@@ -28,12 +28,19 @@ var types = {
       owner: 'owner.email'
     }
   },
+  membership: {
+    list: 'email',
+    item: {
+      email: 'email',
+      status: 'status'
+    }
+  },
   invite: {
     list: 'email',
     item: {
       email: 'email',
-      app: 'app.name',
-      environments: 'environments'
+      app: 'app',
+      environment: 'environment'
     }
   }
 };

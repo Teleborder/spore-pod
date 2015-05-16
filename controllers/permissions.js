@@ -2,25 +2,27 @@ var User = require('../models/user'),
     Permission = require('../models/permission'),
     Invite = require('../models/invite'),
     serialize = require('../serialize'),
-    email = require('../email');
+    email = require('../email'),
+    async = require('async');
 
 // get a list of users with read access for an environment
 exports.list = function (req, res, next) {
-  User.forEnvironment(req.app._id, req.params.env_name, function (err, users) {
+  async.parallel({
+    users: function (next) {
+      User.forEnv(req.app._id, req.params.env_name, next);
+    },
+    invites: function (next) {
+      Invite.forEnv(req.app._id, req.params.env_name, next);
+    }
+  }, function (err, results) {
     if(err) return next(err);
 
-    res.json(serialize('user', users));
-  });
-
-  User.forEnvironment(req.permissions, req.params.app_id, req.params.env_name, function (err, users) {
-    if(err) return next(err);
-
-    res.json(serialize('user', users));
+    res.json(serialize('membership', results.users.concat(results.invites)));
   });
 };
 
 // Invite to an environment on this pod
-exports.createInvite = function (req, res, next) {
+exports.create = function (req, res, next) {
 
   // users need to be verified before granting permissions to other users
   if(!req.user.verified) {
@@ -43,19 +45,19 @@ exports.createInvite = function (req, res, next) {
         function (err) {
           if(err) return next(err);
 
-          res.json(serialize('invite', invite));
+          res.json(serialize('membership', invite));
         }
       );
     });
   });
 };
 
-// Get read access on an environment
-exports.create = function (req, res, next) {
+// Get read access on an environment (updates `status` and potentially `email`)
+exports.update = function (req, res, next) {
   Invite.redeemToken(req.user, req.body.token, function (err) {
     if(err) return next(err);
 
-    res.json(serialize('user', req.user));
+    res.json(serialize('membership', req.user));
   });
 };
 
@@ -65,14 +67,14 @@ exports.delete = function (req, res, next) {
     if(err) return next(err);
 
     if(!user) {
-      res.json(serialize('user', { email: req.params.email }));
+      res.json(serialize('membership', { email: req.params.email, status: 'deleted' }));
       return;
     }
 
     Permission.removeForEnv(user._id, req.app._id, req.params.env_name, function (err) {
       if(err) return next(err);
 
-      res.json(serialize('user', { email: user.email }));
+      res.json(serialize('membership', { email: user.email, status: 'deleted' }));
     });
   });
 };

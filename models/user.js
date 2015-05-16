@@ -37,6 +37,11 @@ userSchema.virtual('keys')
     return [this.get('key')];
   });
 
+userSchema.virtual('status')
+  .get(function () {
+    return 'active';
+  });
+
 userSchema.statics.build = function (email, password) {
   var user,
       User = this;
