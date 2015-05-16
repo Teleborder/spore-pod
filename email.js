@@ -3,7 +3,8 @@ var fs = require('fs'),
     mandrill = require('mandrill-api/mandrill'),
     mandrillClient = new mandrill.Mandrill(process.env.MANDRILL_APIKEY),
     marked = require('marked'),
-    confirmTemplate = fs.readFileSync(path.resolve(__dirname, 'emails', 'confirm.md'), { encoding: 'utf8' });
+    confirmTemplate = fs.readFileSync(path.resolve(__dirname, 'emails', 'confirm.md'), { encoding: 'utf8' }),
+    inviteTemplate = fs.readFileSync(path.resolve(__dirname, 'emails', 'invite.md'), { encoding: 'utf8' });
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -37,7 +38,7 @@ exports.invite = function (params, callback) {
       message;
 
   subject = "Invitation to collaborate on " + params.app.name;
-  message = template(confirmTemplate, {
+  message = template(inviteTemplate, {
     token: params.token,
     appName: params.app.name,
     fromEmail: params.from.email,

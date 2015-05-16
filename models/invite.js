@@ -62,6 +62,7 @@ inviteSchema.statics.create = function (email, appId, envName, callback) {
       token;
 
   invite = new Invite({
+    email: email,
     app: appId,
     environment: envName
   });

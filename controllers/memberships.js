@@ -28,26 +28,22 @@ exports.create = function (req, res, next) {
     return req.user.generateConfirmation("You need to confirm your email address before granting memberships to other users.", next);
   }
 
-  User.byEmail(req.body.email, function (err, user) {
+  Invite.create(req.body.email, req.app._id, req.params.env_name, function (err, token, invite) {
     if(err) return next(err);
 
-    Invite.generateToken(req.app._id, req.params.env_name, function (err, token, invite) {
-      if(err) return next(err);
+    email.invite(
+      {
+        to: req.body.email,
+        from: req.user,
+        app: req.app,
+        token: token
+      },
+      function (err) {
+        if(err) return next(err);
 
-      email.invite(
-        {
-          to: req.body.email,
-          from: req.user,
-          app: req.app,
-          token: token
-        },
-        function (err) {
-          if(err) return next(err);
-
-          res.json(serialize('membership', invite));
-        }
-      );
-    });
+        res.json(serialize('membership', invite));
+      }
+    );
   });
 };
 
