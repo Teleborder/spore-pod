@@ -3,7 +3,7 @@ var mongoose = require('mongoose'),
     bcrypt = require('bcryptjs'),
     uuid = require('node-uuid').v4,
     App = require('./app'),
-    Permission = require('./permission'),
+    Membership = require('./membership'),
     randomStr = require('./utils/random_string'),
     email = require('../email');
 
@@ -89,7 +89,7 @@ function _handleCreate(callback) {
 }
 
 userSchema.statics.forEnv = function (appId, envName, callback) {
-  Permission.find({
+  Membership.find({
     app: appId,
     environment: envName
   })
@@ -127,12 +127,12 @@ userSchema.statics.loginWithKey = function (email, key, callback) {
     }
     if(err) return callback(err);
 
-    Permission.find({
+    Membership.find({
       user: user._id
-    }, function (err, permissions) {
+    }, function (err, memberships) {
       if(err) return callback(err);
 
-      callback(null, user, permissions);
+      callback(null, user, memberships);
     });
   });
 };

@@ -2,7 +2,7 @@ var User = require('./models/user'),
     App = require('./models/app'),
     users = require('./controllers/users'),
     apps = require('./controllers/apps'),
-    permissions = require('./controllers/permissions'),
+    memberships = require('./controllers/memberships'),
     cells = require('./controllers/cells'),
     invites = require('./controllers/invites');
 
@@ -22,11 +22,11 @@ function routes(app) {
   app.post('/apps', loginWithKey, apps.create);
   app.post('/apps/:app_id', loginWithKey, appOwner, apps.update);
 
-  app.get('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, permissions.list);
-  app.post('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, permissions.create);
-  app.post('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, permissions.update);
-  app.patch('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, permissions.update);
-  app.delete('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, appAccess, envAccess, permissions.delete);
+  app.get('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, memberships.list);
+  app.post('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, memberships.create);
+  app.post('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, memberships.update);
+  app.patch('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, memberships.update);
+  app.delete('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, appAccess, envAccess, memberships.delete);
   
   app.get('/invites/:token', invites.show);
 
@@ -49,7 +49,7 @@ function loadApp(req, res, next) {
 }
 
 function appAccess(req, res, next) {
-  App.byPermissionsAndId(req.permissions, req.params.app_id, function (err, app, permission) {
+  App.byMembershipsAndId(req.memberships, req.params.app_id, function (err, app, membership) {
     if(!err && !app) {
       err = new Error("No Such App");
       err.status = 404;
@@ -57,7 +57,7 @@ function appAccess(req, res, next) {
     if(err) return next(err);
 
     req.app = app;
-    req.appPermission = permission;
+    req.appMembership = membership;
 
     next();
   });
@@ -81,7 +81,7 @@ function envAccess(req, res, next) {
     return next();
   }
   // check if they've been granted access by another user
-  if(req.appPermission.canAccess(req.params.env_name)) {
+  if(req.appMembership.canAccess(req.params.env_name)) {
     // can't access non-owned apps without confirming email
     if(!req.user.verified) {
       return req.user.generateConfirmation("You need to confirm your email address before accessing other users' environments.", next);
@@ -95,11 +95,11 @@ function envAccess(req, res, next) {
 }
 
 function loginWithKey(req, res, next) {
-  User.loginWithKey(req.query.email, req.query.key, function (err, user, permissions) {
+  User.loginWithKey(req.query.email, req.query.key, function (err, user, memberships) {
     if(err) return next(err);
 
     req.user = user;
-    req.permissions = permissions;
+    req.memberships = memberships;
 
     next();
   });

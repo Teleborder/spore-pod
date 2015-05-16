@@ -1,5 +1,5 @@
 var User = require('../models/user'),
-    Permission = require('../models/permission'),
+    Membership = require('../models/membership'),
     Invite = require('../models/invite'),
     serialize = require('../serialize'),
     email = require('../email'),
@@ -24,9 +24,9 @@ exports.list = function (req, res, next) {
 // Invite to an environment on this pod
 exports.create = function (req, res, next) {
 
-  // users need to be verified before granting permissions to other users
+  // users need to be verified before granting memberships to other users
   if(!req.user.verified) {
-    return req.user.generateConfirmation("You need to confirm your email address before granting permissions to other users.", next);
+    return req.user.generateConfirmation("You need to confirm your email address before granting memberships to other users.", next);
   }
 
   User.byEmail(req.body.email, function (err, user) {
@@ -71,7 +71,7 @@ exports.delete = function (req, res, next) {
       return;
     }
 
-    Permission.removeForEnv(user._id, req.app._id, req.params.env_name, function (err) {
+    Membership.removeForEnv(user._id, req.app._id, req.params.env_name, function (err) {
       if(err) return next(err);
 
       res.json(serialize('membership', { email: user.email, status: 'deleted' }));
