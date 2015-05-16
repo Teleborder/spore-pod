@@ -3,7 +3,7 @@ var fs = require('fs'),
     mandrill = require('mandrill-api/mandrill'),
     mandrillClient = new mandrill.Mandrill(process.env.MANDRILL_APIKEY),
     marked = require('marked'),
-    confirmTemplate = fs.readFileSync(path.resolve(__dirname, 'emails', 'confirm.md'));
+    confirmTemplate = fs.readFileSync(path.resolve(__dirname, 'emails', 'confirm.md'), { encoding: 'utf8' });
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -50,16 +50,17 @@ exports.invite = function (params, callback) {
 function template(temp, content) {
   content = content || {};
   Object.keys(content).forEach(function (key) {
-    key = key.toUpperCase();
+    var KEY = key.toUpperCase();
 
-    var re = new RegExp("\[\[" + key + "\]\]", "g");
-    temp = temp.replace(re, content);
+    var re = new RegExp('\\[\\[' + KEY + '\\]\\]', 'g');
+    console.log(re);
+    temp = temp.replace(re, content[key]);
   });
 
   return temp;
 }
 
-function send(to, subject, body, callback) {
+function send(email, subject, body, callback) {
 
   var message = {
     text: body,
@@ -69,10 +70,13 @@ function send(to, subject, body, callback) {
     from_name: "Spore",
     to: [
       {
-        email: to.email
+        email: email
       }
     ]
   };
+
+  console.log("mail message");
+  console.log(message);
 
   mandrillClient.messages.send({
     message: message,
