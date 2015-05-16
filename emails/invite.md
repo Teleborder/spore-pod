@@ -8,7 +8,7 @@ If you're new to `spore`
 Paste the below into your shell to install the [command line tool](http://spore.sh) and accept the invitation at the same time:
 
 ```
-curl install.spore.sh/?token=[[TOKEN]] | sh
+curl install.spore.sh/[[TOKEN]] | sh
 ```
 
 If you already have `spore`

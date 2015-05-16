@@ -7,7 +7,11 @@ exports.list = function (req, res, next) {
     if(err) return next(err);
 
     res.json(serialize('app', apps || []));
-  }); 
+  });
+};
+
+exports.show = function (req, res, next) {
+  res.json(serialize('app', req.app));
 };
 
 // Create a new app

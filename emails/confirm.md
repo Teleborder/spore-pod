@@ -1,6 +1,6 @@
 Howdy [[EMAIL]],
 
-You need to confirm your [`spore`](http://spore.sh) account on [[HOST]] before you can grant permissions to other users, or accept granted permissions.
+You need to confirm your [`spore`](http://spore.sh) account on [[HOST]] before you can grant memberships to other users, or accept granted memberships.
 
 To confirm your account, copy and paste the below into your shell:
 

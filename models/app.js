@@ -1,5 +1,5 @@
 var mongoose = require('mongoose'),
-    Permission = require('./permission'),
+    Membership = require('./membership'),
     User = require('./user'),
     isUuid = require('../utils/is_uuid'),
     async = require('async');
@@ -35,13 +35,13 @@ appSchema.statics.create = function (uid, params, callback) {
     owner: params.owner
   });
 
-  permission = new Permission({
+  membership = new Membership({
     app: app._id,
     user: params.owner,
     environments: []
   });
 
-  async.eachSeries([app, permission], function (doc, cb) {
+  async.eachSeries([app, membership], function (doc, cb) {
     doc.save(cb);
   }, function (err) {
     if(err) return callback(err);
@@ -50,15 +50,15 @@ appSchema.statics.create = function (uid, params, callback) {
   });
 };
 
-appSchema.statics.byPermissionsAndId = function (permissions, appId, callback) {
+appSchema.statics.byMembershipsAndId = function (memberships, appId, callback) {
   App.findOne({
     uid: appId
   }).exec(function (err, app) {
     if(err) return callbacK(err);
 
-    for(var i=0; i<permissions.length; i++) {
-      if(permissions[i].app.toString() === app._id.toString()) {
-        return callback(null, app, permissions[i]);
+    for(var i=0; i<memberships.length; i++) {
+      if(memberships[i].app.toString() === app._id.toString()) {
+        return callback(null, app, memberships[i]);
       }
     }
 
@@ -97,7 +97,7 @@ appSchema.methods.changeOwner = function (email, callback) {
 
     app.owner = user._id;
 
-    Permission.ensureForApp(user._id, app._id, function (err) {
+    Membership.ensureForApp(user._id, app._id, function (err) {
       if(err) return next(err);
 
       callback(null, app);

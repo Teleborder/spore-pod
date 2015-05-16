@@ -20,6 +20,7 @@ function routes(app) {
 
   app.get('/apps', loginWithKey, apps.list);
   app.post('/apps', loginWithKey, apps.create);
+  app.get('/apps/:app_id', loginWithKey, apps.show);
   app.post('/apps/:app_id', loginWithKey, appOwner, apps.update);
 
   app.get('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, memberships.list);

@@ -78,14 +78,19 @@ inviteSchema.statics.findByToken = function (token, callback) {
   var Invite = this;
 
   if(token.length !== 10) {
-    return callback(new Error("Invalid invite"));
+    var err = new Error("Invalid invite");
+    err.status = 404;
+    return callback(err);
   }
 
   Invite.findOne({
     tokenId: splitToken(token).id
   }).exec(function (err, invite) {
+    if(!err && (!invite || !invite.validToken(splitToken(token).key))) {
+      err = new Error("Invalid invite");
+      err.status = 404;
+    }
     if(err) return callback(err);
-    if(!invite || !invite.validToken(splitToken(token).key)) return callback(new Error("Invalid invite"));
 
     callback(null, invite);
   });
