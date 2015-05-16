@@ -1,6 +1,8 @@
 var User = require('../models/user'),
     Permission = require('../models/permission'),
-    serialize = require('../serialize');
+    Invite = require('../models/invite'),
+    serialize = require('../serialize'),
+    email = require('../email');
 
 // get a list of users with read access for an environment
 exports.list = function (req, res, next) {
@@ -17,27 +19,44 @@ exports.list = function (req, res, next) {
   });
 };
 
-// Grant read access for an environment (and invite to the pod if they aren't a user)
-exports.create = function (req, res, next) {
+// Invite to an environment on this pod
+exports.createInvite = function (req, res, next) {
 
   // users need to be verified before granting permissions to other users
   if(!req.user.verified) {
-    var token = req.user.generateToken();
-    req.user.save(function (err) {
-      if(err) return next(err);
-
-      email.confirm(req.user, token, function (err) {
-        if(err) return next(err);
-
-        next(new Error("You need to confirm your email address before granting permissions to other users. A confirmation email has been sent to " + req.user.email));
-      });
-    });
-
-    return;
+    return req.user.generateConfirmation("You need to confirm your email address before granting permissions to other users.", next);
   }
 
+  User.byEmail(req.body.email, function (err, user) {
+    if(err) return next(err);
 
-  // TODO: Invite user to an environment
+    Invite.generateToken(req.app._id, req.params.env_name, function (err, token, invite) {
+      if(err) return next(err);
+
+      email.invite(
+        {
+          to: req.body.email,
+          from: req.user,
+          app: req.app,
+          token: token
+        },
+        function (err) {
+          if(err) return next(err);
+
+          res.json(serialize('invite', invite));
+        }
+      );
+    });
+  });
+};
+
+// Get read access on an environment
+exports.create = function (req, res, next) {
+  Invite.redeemToken(req.user, req.body.token, function (err) {
+    if(err) return next(err);
+
+    res.json(serialize('user', req.user));
+  });
 };
 
 // Revoke read access for an environment
@@ -53,7 +72,7 @@ exports.delete = function (req, res, next) {
     Permission.removeForEnv(user._id, req.app._id, req.params.env_name, function (err) {
       if(err) return next(err);
 
-      res.json(serialize('user', user));
+      res.json(serialize('user', { email: user.email }));
     });
   });
 };

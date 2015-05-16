@@ -10,7 +10,8 @@ exports.create = function (req, res, next) {
   });
 };
 
-exports.verify = function (req, res, next) {
+// used only to verify email address
+exports.update = function (req, res, next) {
   User.byEmail(req.params.email, function (err, user) {
 
     if(!err && (!user || !user.validToken(req.body.token))) {
@@ -19,9 +20,7 @@ exports.verify = function (req, res, next) {
     }
     if(err) return next(err);
 
-    user.verified = true;
-
-    user.save(function (err) {
+    user.verify(function (err) {
       if(err) return next(err);
 
       res.json(serialize('user', user));

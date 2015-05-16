@@ -4,7 +4,8 @@ var mongoose = require('mongoose'),
     uuid = require('node-uuid').v4,
     App = require('./app'),
     Permission = require('./permission'),
-    randomStr = require('./utils/random_string');
+    randomStr = require('./utils/random_string'),
+    email = require('../email');
 
 var userSchema = new mongoose.Schema({
   email: {
@@ -36,7 +37,7 @@ userSchema.virtual('keys')
     return [this.get('key')];
   });
 
-userSchema.statics.create = function (email, password, callback) {
+userSchema.statics.build = function (email, password) {
   var user,
       User = this;
 
@@ -53,7 +54,21 @@ userSchema.statics.create = function (email, password, callback) {
   // hit the /keys endpoint to retrieve it
   user.generateKey();
 
-  user.save(function(err) {
+  return user;
+};
+
+userSchema.statics.create = function (email, password, callback) {
+  var user,
+      User = this;
+
+  user = User.build(email, password);
+  user.signedUp = true;
+
+  user.save(_handleCreate);
+};
+
+function _handleCreate(callback) {
+  return function (err, user) {
     if (err) {
       if(err.name === 'ValidationError' && err.errors) {
         // do something here?
@@ -65,8 +80,8 @@ userSchema.statics.create = function (email, password, callback) {
     }
 
     callback(null, user);
-  });
-};
+  };
+}
 
 userSchema.statics.forEnv = function (appId, envName, callback) {
   Permission.find({
@@ -113,6 +128,52 @@ userSchema.statics.loginWithKey = function (email, key, callback) {
       if(err) return callback(err);
 
       callback(null, user, permissions);
+    });
+  });
+};
+
+userSchema.methods.verify = function (callback) {
+  var user = this;
+
+  if(user.verified) {
+    process.nextTick(function () {
+      callback(null, user);
+    });
+    return;
+  }
+
+  user.verified = true;
+
+  user.save(callback);
+};
+
+userSchema.methods.verifyEmail = function (email, callback) {
+  var user = this;
+
+  if(email && email === user.email) {
+    return user.verify(callback);
+  }
+
+  process.nextTick(function () {
+    callback(null, user);
+  });
+};
+
+// This method *always* calls back with an error
+userSchema.methods.generateConfirmation = function (message, callback) {
+  var user = this;
+
+  message += " A confirmation email has been sent to " + req.user.email;
+
+  var token = user.generateToken();
+
+  user.save(function (err) {
+    if(err) return callback(err);
+
+    email.confirm(user, token, function (err) {
+      err = err || new Error(message);
+      err.status = err.status || 403;
+      callback(err);
     });
   });
 };

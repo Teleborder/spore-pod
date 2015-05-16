@@ -14,13 +14,16 @@ function routes(app) {
 
   app.post('/users', users.create);
   app.post('/users/:email/keys', users.createKey);
+  app.put('/users/:email', users.update);
+  app.patch('/users/:email', users.update);
 
   app.get('/apps', loginWithKey, apps.list);
   app.post('/apps', loginWithKey, apps.create);
   app.post('/apps/:app_id', loginWithKey, appOwner, apps.update);
 
   app.get('/apps/:app_id/envs/:env_name/users', loginWithKey, appAccess, envAccess, permissions.list);
-  app.post('/apps/:app_id/envs/:env_name/users', loginWithKey, appAccess, envAccess, permissions.create);
+  app.post('/apps/:app_id/envs/:env_name/invites', loginWithKey, appAccess, envAccess, permissions.createInvite);
+  app.post('/apps/:app_id/envs/:env_name/users', loginWithKey, permissions.create);
   app.delete('/apps/:app_id/envs/:env_name/users/:email', loginWithKey, appAccess, envAccess, permissions.delete);
 
   app.post('/apps/:app_id/envs/:env_name/cells', loginWithKey, loadApp, cells.create);
@@ -69,9 +72,19 @@ function appOwner(req, res, next) {
 }
 
 function envAccess(req, res, next) {
-  if(req.appPermission.canAccess(req.params.env_name) || req.app.owner.toString() === req.user._id.toString()) {
+  // owners always have access
+  if(req.app.owner.toString() === req.user._id.toString()) {
     return next();
   }
+  // check if they've been granted access by another user
+  if(req.appPermission.canAccess(req.params.env_name)) {
+    // can't access non-owned apps without confirming email
+    if(!req.user.verified) {
+      return req.user.generateConfirmation("You need to confirm your email address before accessing other users' environments.", next);
+    }
+    return next();
+  }
+  // no access
   var err = new Error("You haven't been granted read access on " + req.app.name + "/" + req.params.env_name);
   err.status = 403;
   next(err);

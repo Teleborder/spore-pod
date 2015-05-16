@@ -27,6 +27,14 @@ var types = {
       name: 'name',
       owner: 'owner.email'
     }
+  },
+  invite: {
+    list: 'email',
+    item: {
+      email: 'email',
+      app: 'app.name',
+      environments: 'environments'
+    }
   }
 };
 

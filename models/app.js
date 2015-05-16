@@ -97,7 +97,7 @@ appSchema.methods.changeOwner = function (email, callback) {
 
     app.owner = user._id;
 
-    Permission.ensureForApp(app._id, user._id, function (err) {
+    Permission.ensureForApp(user._id, app._id, function (err) {
       if(err) return next(err);
 
       callback(null, app);
