@@ -1,6 +1,6 @@
 var mongoose = require('mongoose'),
     bcrypt = require('bcrypt'),
-    Permission = require('./permission');
+    Membership = require('./membership');
 
 var inviteSchema = new mongoose.Schema({
   app: {
@@ -26,6 +26,21 @@ var inviteSchema = new mongoose.Schema({
 inviteSchema.virtual('status')
   .get(function () {
     return 'pending';
+  });
+
+inviteSchema.virtual('valid')
+  .get(function () {
+    return true;
+  });
+
+inviteSchema.virtual('environments')
+  .get(function () {
+    return [this.environment];
+  });
+
+inviteSchema.virtual('member')
+  .get(function () {
+    return { email: this.email };
   });
 
 inviteSchema.statics.forEnv = function (appId, envName, callback) {
@@ -83,7 +98,7 @@ inviteSchema.statics.redeemToken = function (user, token, callback) {
     if(err) return callback(err);
 
     user.verifyEmail(email, function (err, user) {
-      Permission.ensureForEnv(user._id, invite.app, invite.environment, function (err) {
+      Membership.ensureForEnv(user._id, invite.app, invite.environment, function (err) {
         if(err) return callback(err);
 
         invite.remove(callback);

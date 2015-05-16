@@ -8,8 +8,8 @@ var User = require('../models/user'),
 // get a list of users with read access for an environment
 exports.list = function (req, res, next) {
   async.parallel({
-    users: function (next) {
-      User.forEnv(req.app._id, req.params.env_name, next);
+    memberships: function (next) {
+      Membership.forEnv(req.app._id, req.params.env_name, next);
     },
     invites: function (next) {
       Invite.forEnv(req.app._id, req.params.env_name, next);
@@ -17,14 +17,13 @@ exports.list = function (req, res, next) {
   }, function (err, results) {
     if(err) return next(err);
 
-    res.json(serialize('membership', results.users.concat(results.invites)));
+    res.json(serialize('membership', results.memberships.concat(results.invites)));
   });
 };
 
 // Invite to an environment on this pod
 exports.create = function (req, res, next) {
 
-  // users need to be verified before granting memberships to other users
   if(!req.user.verified) {
     return req.user.generateConfirmation("You need to confirm your email address before granting memberships to other users.", next);
   }
@@ -67,14 +66,14 @@ exports.delete = function (req, res, next) {
     if(err) return next(err);
 
     if(!user) {
-      res.json(serialize('membership', { email: req.params.email, status: 'deleted' }));
+      res.json(serialize('membership', { member: { email: req.params.email }, status: 'deleted' }));
       return;
     }
 
     Membership.removeForEnv(user._id, req.app._id, req.params.env_name, function (err) {
       if(err) return next(err);
 
-      res.json(serialize('membership', { email: user.email, status: 'deleted' }));
+      res.json(serialize('membership', { member: { email: user.email }, status: 'deleted' }));
     });
   });
 };

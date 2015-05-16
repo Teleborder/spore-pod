@@ -29,9 +29,9 @@ var types = {
     }
   },
   membership: {
-    list: 'email',
+    list: 'member.email',
     item: {
-      email: 'email',
+      member: 'member.email',
       status: 'status'
     }
   },
@@ -40,7 +40,8 @@ var types = {
     item: {
       email: 'email',
       app: 'app',
-      environment: 'environment'
+      environment: 'environment',
+      valid: 'valid'
     }
   }
 };

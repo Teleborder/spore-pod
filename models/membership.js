@@ -2,7 +2,7 @@ var mongoose = require('mongoose'),
     bcrypt = require('bcrypt');
 
 var membershipSchema = new mongoose.Schema({
-  user: {
+  member: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
@@ -15,27 +15,36 @@ var membershipSchema = new mongoose.Schema({
   environments: [String]
 });
 
-membershipSchema.index({ user: 1, app: 1}, { unique: true });
+membershipSchema.index({ member: 1, app: 1 }, { unique: true });
 
-membershipSchema.statics.ensureForApp = function (userId, appId, callback) {
-  this.ensureForEnv(userId, appId, null, callback);
+membershipSchema.statics.forEnv = function (appId, envName, callback) {
+  this.find({
+    app: appId,
+    environment: envName
+  })
+  .populate('member')
+  .exec(callback);
 };
 
-membershipSchema.statics.ensureForEnv = function (userId, appId, envNames, callback) {
+membershipSchema.statics.ensureForApp = function (memberId, appId, callback) {
+  this.ensureForEnv(memberId, appId, null, callback);
+};
+
+membershipSchema.statics.ensureForEnv = function (memberId, appId, envNames, callback) {
   var Membership = this;
 
   envNames = envNames || [];
 
   Membership.findOne({
     app: appId,
-    user: userId
+    member: memberId
   }).exec(function (err, membership) {
     if(err) return next(err);
 
     if(!membership) {
       membership = new Membership({
         app: appId,
-        user: userId,
+        member: memberId,
         environments: []
       });
     }
@@ -50,11 +59,11 @@ membershipSchema.statics.ensureForEnv = function (userId, appId, envNames, callb
   }); 
 };
 
-membershipSchema.statics.removeForEnv = function (userId, appId, envName, callback) {
+membershipSchema.statics.removeForEnv = function (memberId, appId, envName, callback) {
   var Membership = this;
 
   Membership.findOne({
-    user: userId,
+    member: memberId,
     app: appId
   }).exec(function (err, membership) {
     if(err) return next(err);
