@@ -9,7 +9,9 @@ var inviteSchema = new mongoose.Schema({
     ref: 'App',
     required: true
   },
-  environment: String,
+  environment: {
+    type: String
+  },
   email: {
     type: String
   },
@@ -22,6 +24,11 @@ var inviteSchema = new mongoose.Schema({
     required: true,
     unique: true
   }
+});
+
+inviteSchema.pre('validate', function (next) {
+  this.environment = slug(this.environment);
+  next();
 });
 
 inviteSchema.virtual('status')

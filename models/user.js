@@ -88,19 +88,16 @@ function _handleCreate(callback) {
   };
 }
 
-userSchema.statics.forEnv = function (appId, envName, callback) {
-  Membership.find({
-    app: appId,
-    environment: envName
-  })
-  .populate('user')
-  .exec(function (err, perms) {
-    if(err) return callback(err);
+userSchema.statics.ensureBotForEnv = function (appId, envName, callback) {
+  var User = this;
 
-    callback(null, perms.map(function (perm) {
-      return perm.user;
-    }));
-  });
+  User.byEmail()
+};
+
+userSchema.statics.botByEnv = function (appId, envName, callback) {
+  var User = this;
+
+  User.byEmail(envName + )
 };
 
 userSchema.statics.byEmail = function (email, callback) {

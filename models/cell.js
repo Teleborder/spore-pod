@@ -1,5 +1,6 @@
 var mongoose = require('mongoose'),
-    isUuid = require('../utils/is_uuid');
+    isUuid = require('../utils/is_uuid'),
+    slug = require('slug');
 
 var cellSchema = new mongoose.Schema({
   uid: {
@@ -31,6 +32,11 @@ var cellSchema = new mongoose.Schema({
 cellSchema.path('uid').validate(function (uid) {
   return isUuid(uid);
 }, "Invalid ID (UUID v4)");
+
+cellSchema.pre('validate', function (next) {
+  this.environment = slug(this.environment);
+  next();
+});
 
 cellSchema.statics.create = function (uid, params, callback) {
   var cell,

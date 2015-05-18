@@ -18,6 +18,7 @@
     "marked": "^0.3.3",
     "mongoose": "^4.0.2",
     "mongoose-validate": "0.0.5",
-    "node-uuid": "^1.4.3"
+    "node-uuid": "^1.4.3",
+    "slug": "^0.9.1"
   }
 }

@@ -17,6 +17,13 @@ var membershipSchema = new mongoose.Schema({
 
 membershipSchema.index({ member: 1, app: 1 }, { unique: true });
 
+membershipSchema.pre('validate', function (next) {
+  this.environments = this.environments.map(function (envName) {
+    return slug(envName);
+  });
+  next();
+});
+
 membershipSchema.statics.forEnv = function (appId, envName, callback) {
   this.find({
     app: appId,
