@@ -29,6 +29,11 @@ var userSchema = new mongoose.Schema({
     type: Boolean,
     required: true,
     default: false
+  },
+  server: {
+    type: Boolean,
+    required: true,
+    default: false
   }
 });
 
@@ -67,12 +72,10 @@ userSchema.statics.create = function (email, password, callback) {
       User = this;
 
   user = User.build(email, password);
-  user.signedUp = true;
-
-  user.save(_handleCreate(callback));
+  user.save(User._handleCreate(callback));
 };
 
-function _handleCreate(callback) {
+userSchema.statics._handleCreate = function(callback) {
   return function (err, user) {
     if (err) {
       if(err.name === 'ValidationError' && err.errors) {
@@ -86,18 +89,6 @@ function _handleCreate(callback) {
 
     callback(null, user);
   };
-}
-
-userSchema.statics.ensureBotForEnv = function (appId, envName, callback) {
-  var User = this;
-
-  User.byEmail()
-};
-
-userSchema.statics.botByEnv = function (appId, envName, callback) {
-  var User = this;
-
-  User.byEmail(envName + )
 };
 
 userSchema.statics.byEmail = function (email, callback) {

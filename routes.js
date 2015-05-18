@@ -18,6 +18,8 @@ function routes(app) {
   app.put('/users/:email', users.update);
   app.patch('/users/:email', users.update);
 
+  app.post('/servers/:app_id/:env_name/keys', loginWithKey, appAccess, envAccess, servers.createKey);
+
   app.get('/apps', loginWithKey, apps.list);
   app.post('/apps', loginWithKey, apps.create);
   app.get('/apps/:app_id', loginWithKey, apps.show);

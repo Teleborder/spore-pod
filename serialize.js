@@ -32,6 +32,7 @@ var types = {
     list: 'member.email',
     item: {
       member: 'member.email',
+      server: 'member.server',
       status: 'status'
     }
   },

@@ -1,5 +1,6 @@
 var mongoose = require('mongoose'),
-    bcrypt = require('bcryptjs');
+    bcrypt = require('bcryptjs'),
+    slug = require('slug');
 
 var membershipSchema = new mongoose.Schema({
   member: {
@@ -27,7 +28,7 @@ membershipSchema.pre('validate', function (next) {
 membershipSchema.statics.forEnv = function (appId, envName, callback) {
   this.find({
     app: appId,
-    environment: envName
+    environment: envName ? slug(envName) : envName
   })
   .populate('member')
   .exec(callback);
@@ -57,7 +58,7 @@ membershipSchema.statics.ensureForEnv = function (memberId, appId, envNames, cal
     }
 
     envNames.forEach(function (envName) {
-      if(envName && membership.environments.indexOf(envName) === -1) {
+      if(envName && membership.environments.indexOf(slug(envName)) === -1) {
         membership.environments.push(envName);
       }
     });
@@ -80,7 +81,7 @@ membershipSchema.statics.removeForEnv = function (memberId, appId, envName, call
       return;
     }
 
-    var idx = membership.environments.indexOf(envName);
+    var idx = membership.environments.indexOf(slug(envName));
 
     if(idx === -1) {
       callback();
@@ -95,7 +96,7 @@ membershipSchema.statics.removeForEnv = function (memberId, appId, envName, call
 };
 
 membershipSchema.methods.canAccess = function (envName) {
-  return this.environments.indexOf(envName) > -1;
+  return this.environments.indexOf(slug(envName)) > -1;
 };
 
 var Membership = mongoose.model('Membership', membershipSchema);

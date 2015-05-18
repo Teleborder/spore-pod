@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
     Membership = require('./membership'),
     User = require('./user'),
+    Server = require('./server'),
     isUuid = require('../utils/is_uuid'),
     async = require('async');
 
