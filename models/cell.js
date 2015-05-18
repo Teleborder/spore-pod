@@ -1,6 +1,5 @@
 var mongoose = require('mongoose'),
     isUuid = require('../utils/is_uuid'),
-    Server = require('./server'),
     slug = require('slug');
 
 var cellSchema = new mongoose.Schema({
@@ -53,11 +52,7 @@ cellSchema.statics.create = function (uid, params, callback) {
     creator: params.creator
   });
 
-  Server.ensureForEnv(params.app, params.environment, function (err, server) {
-    if(err) return callback(err);
-
-    cell.save(callback);
-  });
+  cell.save(callback);
 };
 
 var Cell = mongoose.model('Cell', cellSchema);

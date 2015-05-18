@@ -17,7 +17,9 @@ exports.list = function (req, res, next) {
   }, function (err, results) {
     if(err) return next(err);
 
-    res.json(serialize('membership', results.memberships.concat(results.invites)));
+    var memberships = results.memberships.concat(results.invites);
+
+    res.json(serialize('membership', memberships));
   });
 };
 
@@ -47,7 +49,7 @@ exports.create = function (req, res, next) {
   });
 };
 
-// Get read access on an environment (updates `status` and potentially `email`)
+// Get read access on an environment by accepting an invite (updates `status` and potentially `email`)
 exports.update = function (req, res, next) {
   Invite.redeemToken(req.user, req.body.token, function (err) {
     if(err) return next(err);
@@ -57,7 +59,7 @@ exports.update = function (req, res, next) {
 };
 
 // Revoke read access for an environment
-exports.delete = function (req, res, next) {
+exports.destroy = function (req, res, next) {
   User.byEmail(req.params.email, function (err, user) {
     if(err) return next(err);
 

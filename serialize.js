@@ -32,8 +32,15 @@ var types = {
     list: 'member.email',
     item: {
       member: 'member.email',
-      server: 'member.server',
       status: 'status'
+    }
+  },
+  deployment: {
+    list: 'name',
+    item: {
+      name: 'name',
+      key: 'key',
+      destroyed: 'destroyed'
     }
   },
   invite: {

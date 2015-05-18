@@ -1,10 +1,12 @@
 var User = require('./models/user'),
     App = require('./models/app'),
+    Deployment = require('./models/deployment'),
     users = require('./controllers/users'),
     apps = require('./controllers/apps'),
     memberships = require('./controllers/memberships'),
     cells = require('./controllers/cells'),
-    invites = require('./controllers/invites');
+    invites = require('./controllers/invites'),
+    deployments = require('./controllers/deployments');
 
 module.exports = routes;
 
@@ -18,23 +20,25 @@ function routes(app) {
   app.put('/users/:email', users.update);
   app.patch('/users/:email', users.update);
 
-  app.post('/servers/:app_id/:env_name/keys', loginWithKey, noServers, appAccess, envAccess, servers.createKey);
+  app.get('/apps', loginAsUser, apps.list);
+  app.post('/apps', loginAsUser, apps.create);
+  app.get('/apps/:app_id', loginAsUser, apps.show);
+  app.post('/apps/:app_id', loginAsUser, appOwner, apps.update);
 
-  app.get('/apps', loginWithKey, noServers, apps.list);
-  app.post('/apps', loginWithKey, noServers, apps.create);
-  app.get('/apps/:app_id', loginWithKey, noServers, apps.show);
-  app.post('/apps/:app_id', loginWithKey, noServers, appOwner, apps.update);
+  app.get('/apps/:app_id/envs/:env_name/deployments', loginAsUser, appAccess, envAccess, deployments.list);
+  app.post('/apps/:app_id/envs/:env_name/deployments', loginAsUser, appAccess, envAccess, deployments.create);
+  app.delete('/apps/:app_id/envs/:env_name/deployments/:deployment_name', loginAsUser, appAccess, envAccess, deployments.destroy);
 
-  app.get('/apps/:app_id/envs/:env_name/memberships', loginWithKey, noServers, appAccess, envAccess, memberships.list);
-  app.post('/apps/:app_id/envs/:env_name/memberships', loginWithKey, noServers, appAccess, envAccess, memberships.create);
-  app.post('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, noServers, memberships.update);
-  app.patch('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, noServers, memberships.update);
-  app.delete('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, noServers, appAccess, envAccess, memberships.delete);
+  app.get('/apps/:app_id/envs/:env_name/memberships', loginAsUser, appAccess, envAccess, memberships.list);
+  app.post('/apps/:app_id/envs/:env_name/memberships', loginAsUser, appAccess, envAccess, memberships.create);
+  app.post('/apps/:app_id/envs/:env_name/memberships/:email', loginAsUser, memberships.update);
+  app.patch('/apps/:app_id/envs/:env_name/memberships/:email', loginAsUser, memberships.update);
+  app.delete('/apps/:app_id/envs/:env_name/memberships/:email', loginAsUser, appAccess, envAccess, memberships.destroy);
   
   app.get('/invites/:token', invites.show);
 
-  app.post('/apps/:app_id/envs/:env_name/cells', loginWithKey, noServers, loadApp, cells.create);
-  app.get('/apps/:app_id/envs/:env_name/cells/:cell_id', loginWithKey, appAccess, envAccess, cells.show);
+  app.post('/apps/:app_id/envs/:env_name/cells', loginAsUser, loadApp, cells.create);
+  app.get('/apps/:app_id/envs/:env_name/cells/:cell_id', loadApp, loginAsUserOrDeployment, appAccessDeployment, envAccessDeployment, cells.show);
 }
 
 function loadApp(req, res, next) {
@@ -49,6 +53,13 @@ function loadApp(req, res, next) {
 
     next();
   }); 
+}
+
+function appAccessDeployment(req, res, next) {
+  if(req.deployment) {
+    return next();
+  }
+  appAccess(req, res, next);
 }
 
 function appAccess(req, res, next) {
@@ -78,6 +89,13 @@ function appOwner(req, res, next) {
   });
 }
 
+function envAccessDeployment(req, res, next) {
+  if(req.deployment) {
+    return next();
+  }
+  envAccess(req, res, next);
+}
+
 function envAccess(req, res, next) {
   // owners always have access
   if(req.app.owner.toString() === req.user._id.toString()) {
@@ -97,22 +115,30 @@ function envAccess(req, res, next) {
   next(err);
 }
 
-function noServers(req, res, next) {
-  if(req.user.server === true) {
-    var err = new Error("Servers can't access this endpoint.");
-    err.status = 403;
-    return next(err);
+function loginAsUserOrDeployment(req, res, next) {
+  if(req.query.email) {
+    return loginAsUser(req, res, next);
   }
 
-  next();
+  loginAsDeployment(req, res, next);
 }
 
-function loginWithKey(req, res, next) {
+function loginAsUser(req, res, next) {
   User.loginWithKey(req.query.email, req.query.key, function (err, user, memberships) {
     if(err) return next(err);
 
     req.user = user;
     req.memberships = memberships;
+
+    next();
+  });
+}
+
+function loginAsDeployment(req, res, next) {
+  Deployment.loginWithKey(req.app._id, req.params.env_name, req.params.deployment_name, req.query.key, function (err, deployment) {
+    if(err) return next(err);
+
+    req.deployment = deployment;
 
     next();
   });
