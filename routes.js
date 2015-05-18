@@ -18,22 +18,22 @@ function routes(app) {
   app.put('/users/:email', users.update);
   app.patch('/users/:email', users.update);
 
-  app.post('/servers/:app_id/:env_name/keys', loginWithKey, appAccess, envAccess, servers.createKey);
+  app.post('/servers/:app_id/:env_name/keys', loginWithKey, noServers, appAccess, envAccess, servers.createKey);
 
-  app.get('/apps', loginWithKey, apps.list);
-  app.post('/apps', loginWithKey, apps.create);
-  app.get('/apps/:app_id', loginWithKey, apps.show);
-  app.post('/apps/:app_id', loginWithKey, appOwner, apps.update);
+  app.get('/apps', loginWithKey, noServers, apps.list);
+  app.post('/apps', loginWithKey, noServers, apps.create);
+  app.get('/apps/:app_id', loginWithKey, noServers, apps.show);
+  app.post('/apps/:app_id', loginWithKey, noServers, appOwner, apps.update);
 
-  app.get('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, memberships.list);
-  app.post('/apps/:app_id/envs/:env_name/memberships', loginWithKey, appAccess, envAccess, memberships.create);
-  app.post('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, memberships.update);
-  app.patch('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, memberships.update);
-  app.delete('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, appAccess, envAccess, memberships.delete);
+  app.get('/apps/:app_id/envs/:env_name/memberships', loginWithKey, noServers, appAccess, envAccess, memberships.list);
+  app.post('/apps/:app_id/envs/:env_name/memberships', loginWithKey, noServers, appAccess, envAccess, memberships.create);
+  app.post('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, noServers, memberships.update);
+  app.patch('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, noServers, memberships.update);
+  app.delete('/apps/:app_id/envs/:env_name/memberships/:email', loginWithKey, noServers, appAccess, envAccess, memberships.delete);
   
   app.get('/invites/:token', invites.show);
 
-  app.post('/apps/:app_id/envs/:env_name/cells', loginWithKey, loadApp, cells.create);
+  app.post('/apps/:app_id/envs/:env_name/cells', loginWithKey, noServers, loadApp, cells.create);
   app.get('/apps/:app_id/envs/:env_name/cells/:cell_id', loginWithKey, appAccess, envAccess, cells.show);
 }
 
@@ -95,6 +95,16 @@ function envAccess(req, res, next) {
   var err = new Error("You haven't been granted read access on " + req.app.name + "/" + req.params.env_name);
   err.status = 403;
   next(err);
+}
+
+function noServers(req, res, next) {
+  if(req.user.server === true) {
+    var err = new Error("Servers can't access this endpoint.");
+    err.status = 403;
+    return next(err);
+  }
+
+  next();
 }
 
 function loginWithKey(req, res, next) {
