@@ -135,7 +135,7 @@ function loginAsUser(req, res, next) {
 }
 
 function loginAsDeployment(req, res, next) {
-  Deployment.loginWithKey(req.app._id, req.params.env_name, req.params.deployment_name, req.query.key, function (err, deployment) {
+  Deployment.loginWithKey(req.app._id, req.params.env_name, req.query.name, req.query.key, function (err, deployment) {
     if(err) return next(err);
 
     req.deployment = deployment;
