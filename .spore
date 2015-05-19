@@ -1,15 +1,15 @@
 {
   "name": "spore-pod",
-  "id": "bc1faee0-8fff-409e-9c3f-3cd065412e68",
+  "id": "9bdee9c7-1c9b-4282-9a13-3e38cff7e128",
   "envs": {
     "development": {
-      "MANDRILL_APIKEY": "fcdb1d08-ed04-4ada-8d91-10a65c6b58fb"
+      "MANDRILL_APIKEY": "f6dfcde7-d712-45a9-85a8-3657485dd60c"
     },
     "staging": {
-      "MANDRILL_APIKEY": "1b0a1bdb-8074-484b-827a-94670ae13520"
+      "MANDRILL_APIKEY": "031b1942-8542-4c35-8a27-8c2345f36d4f"
     },
     "production": {
-      "MANDRILL_APIKEY": "ae619f24-3478-4753-a24c-ad56755af2af"
+      "MANDRILL_APIKEY": "dffbcd19-d530-4e2f-9741-27e48a04dfcc"
     }
   },
   "__comments": [

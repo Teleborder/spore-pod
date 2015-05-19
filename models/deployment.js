@@ -47,7 +47,12 @@ deploymentSchema.statics.create = function (appId, envName, deploymentName, call
 
   deployment.save(function (err) {
     if(err) return callback(err);
-    callback(null, deployment, key);
+
+    Deployment.populate(deployment, { path: 'app' }, function (err, deployment) {
+      if(err) return callback(err);
+
+      callback(null, deployment, key);
+    });
   });
 };
 

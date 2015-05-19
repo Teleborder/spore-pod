@@ -1,7 +1,8 @@
 var mongoose = require('mongoose'),
     bcrypt = require('bcryptjs'),
     Membership = require('./membership'),
-    randomStr = require('../utils/random_string');
+    randomStr = require('../utils/random_string'),
+    slug = require('slug');
 
 var inviteSchema = new mongoose.Schema({
   app: {
