@@ -34,11 +34,6 @@ deploymentSchema.pre('validate', function (next) {
   next();
 });
 
-deploymentSchema.virtual('status')
-  .get(function () {
-    return 'active';
-  });
-
 deploymentSchema.statics.create = function (appId, envName, deploymentName, callback) {
   var Deployment = this;
 
@@ -74,7 +69,9 @@ deploymentSchema.statics.byEnv = function (appId, envName, callback) {
   this.find({
     app: appId,
     environment: slug(envName)
-  }).exec(callback);
+  })
+  .populate('app')
+  .exec(callback);
 };
 
 deploymentSchema.statics.byName = function (appId, envName, deploymentName, callback) {
@@ -84,7 +81,9 @@ deploymentSchema.statics.byName = function (appId, envName, deploymentName, call
     environment: slug(envName),
     name: slug(deploymentName),
     app: appId
-  }).exec(callback);
+  })
+  .populate('app')
+  .exec(callback);
 };
 
 deploymentSchema.statics.loginWithKey = function (appId, envName, deploymentName, key, callback) {
@@ -99,6 +98,10 @@ deploymentSchema.statics.loginWithKey = function (appId, envName, deploymentName
 
     callback(null, deployment);
   });
+};
+
+deploymentSchema.methods.environmentVariable = function (key) {
+  return [[[this.name, this.environment, this.app.uid].join('+'), key].join(':'), process.env.HOSTNAME].join('@');
 };
 
 deploymentSchema.methods.generateKey = function () {

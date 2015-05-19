@@ -40,6 +40,7 @@ var types = {
     item: {
       name: 'name',
       key: 'key',
+      exports: 'exports',
       destroyed: 'destroyed'
     }
   },

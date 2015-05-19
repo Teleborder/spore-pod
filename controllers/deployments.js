@@ -13,8 +13,10 @@ exports.create = function (req, res, next) {
   Deployment.create(req.app._id, req.params.env_name, req.body.name, function (err, deployment, key) {
     if(err) return next(err);
 
+    var envVar = deployment.environmentVariable(key);
     deployment = deployment.toObject();
     deployment.key = key;
+    deployment.exports = envVar;
 
     res.json(serialize('deployment', deployment));
   });
