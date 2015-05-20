@@ -1,4 +1,5 @@
-var User = require('./models/user'),
+var basicAuth = require('basic-auth'),
+    User = require('./models/user'),
     App = require('./models/app'),
     Deployment = require('./models/deployment'),
     users = require('./controllers/users'),
@@ -116,7 +117,9 @@ function envAccess(req, res, next) {
 }
 
 function loginAsUserOrDeployment(req, res, next) {
-  if(req.query.email) {
+  var auth = basicAuth(req);
+
+  if(auth.user && auth.user.indexOf('@') !== -1) {
     return loginAsUser(req, res, next);
   }
 
@@ -124,7 +127,8 @@ function loginAsUserOrDeployment(req, res, next) {
 }
 
 function loginAsUser(req, res, next) {
-  User.loginWithKey(req.query.email, req.query.key, function (err, user, memberships) {
+  var auth = basicAuth(req);
+  User.loginWithKey(auth.user, auth.pass, function (err, user, memberships) {
     if(err) return next(err);
 
     req.user = user;
@@ -135,7 +139,8 @@ function loginAsUser(req, res, next) {
 }
 
 function loginAsDeployment(req, res, next) {
-  Deployment.loginWithKey(req.app._id, req.params.env_name, req.query.name, req.query.key, function (err, deployment) {
+  var auth = basicAuth(req);
+  Deployment.loginWithKey(req.app._id, req.params.env_name, auth.user, auth.pass, function (err, deployment) {
     if(err) return next(err);
 
     req.deployment = deployment;
