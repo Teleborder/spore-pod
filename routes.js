@@ -1,4 +1,5 @@
 var basicAuth = require('basic-auth'),
+    randomStr = require('./utils/random_string'),
     User = require('./models/user'),
     App = require('./models/app'),
     Deployment = require('./models/deployment'),
@@ -119,7 +120,11 @@ function envAccess(req, res, next) {
 function loginAsUserOrDeployment(req, res, next) {
   var auth = basicAuth(req);
 
-  if(auth.user && auth.user.indexOf('@') !== -1) {
+  if(!auth || !auth.user) {
+    return failAuth(req, res, next);
+  }
+
+  if(auth.user.indexOf('@') !== -1) {
     return loginAsUser(req, res, next);
   }
 
@@ -128,6 +133,11 @@ function loginAsUserOrDeployment(req, res, next) {
 
 function loginAsUser(req, res, next) {
   var auth = basicAuth(req);
+
+  if(!auth) {
+    return failAuth(req, res, next);
+  }
+
   User.loginWithKey(auth.user, auth.pass, function (err, user, memberships) {
     if(err) return next(err);
 
@@ -140,6 +150,11 @@ function loginAsUser(req, res, next) {
 
 function loginAsDeployment(req, res, next) {
   var auth = basicAuth(req);
+
+  if(!auth) {
+    return failAuth(req, res, next);
+  }
+
   Deployment.loginWithKey(req.app._id, req.params.env_name, auth.user, auth.pass, function (err, deployment) {
     if(err) return next(err);
 
@@ -147,4 +162,11 @@ function loginAsDeployment(req, res, next) {
 
     next();
   });
+}
+
+function failAuth(req, res, next) {
+  // use a random string for the realm since we want the
+  // user to reauthenticate for every request
+  res.set('WWW-Authenticate', 'Basic realm="' + randomStr(10) + '"');
+  return res.sendStatus(401);
 }

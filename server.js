@@ -18,48 +18,30 @@ app.use(function(req, res, next) {
 
 // error handlers
 
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    console.log("DEV ERROR");
-    console.log(err);
-    console.log(err.stack);
+app.use(function(err, req, res, next) {
+  console.log("ERROR in " + app.get('env'));
+  console.log(err);
+  console.log(err.stack);
 
-    if(err.status) {
-      res.status(err.status);
-    } else {
-      res.status(500);
-    }
+  if(err.status) {
+    res.status(err.status);
+  } else {
+    res.status(500);
+  }
 
-    res.json({
-      error: {
-        message: err.message,
-        stack: err.stack
-      }
-    });
+  var error = {
+    message: err.message
+  };
+
+  if(app.get('env') === 'development') {
+    error.statck = err.stack;
+  }
+
+  res.json({
+    error: error
   });
-}
+});
 
-// production error handler
-// no stacktraces leaked to user
-if(app.get('env') === 'production') {
-  app.use(function(err, req, res, next) {
-    console.log("PRODUCTION ERROR ENCOUNTERED");
-    console.log(err);
-    console.log(err.stack);
-    if(err.status) {
-      res.status(err.status);
-    } else {
-      res.status(500);
-    }
-    res.json({
-      error: {
-        message: err.message
-      }
-    });
-  });
-}
 
 mongoose.connect(process.env.MONGO_URI);
 
