@@ -3,13 +3,19 @@
   "id": "9bdee9c7-1c9b-4282-9a13-3e38cff7e128",
   "envs": {
     "development": {
-      "MANDRILL_APIKEY": "f6dfcde7-d712-45a9-85a8-3657485dd60c"
+      "MANDRILL_APIKEY": "f6dfcde7-d712-45a9-85a8-3657485dd60c",
+      "NODE_ENV": "f109446c-cd5a-47ae-b113-09e2b772b3d0",
+      "APP_NAME": "35e205ce-856e-4ccc-8d40-65d3ad930b4e",
+      "MONGO_URI": "1ccc8b3c-ea7d-4a1e-a86f-6ce863b58653",
+      "PORT": "65189136-1efd-438e-ab63-e3e51dbf1ed7"
     },
     "staging": {
-      "MANDRILL_APIKEY": "031b1942-8542-4c35-8a27-8c2345f36d4f"
+      "MANDRILL_APIKEY": "031b1942-8542-4c35-8a27-8c2345f36d4f",
+      "NODE_ENV": "347ec90f-fe28-4b2e-9ff7-232716fd3bc0"
     },
     "production": {
-      "MANDRILL_APIKEY": "dffbcd19-d530-4e2f-9741-27e48a04dfcc"
+      "MANDRILL_APIKEY": "dffbcd19-d530-4e2f-9741-27e48a04dfcc",
+      "NODE_ENV": "8dbd2ca3-c699-494d-a31d-0906e5b1962b"
     }
   },
   "__comments": [

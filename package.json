@@ -19,6 +19,7 @@
     "mongoose": "^4.0.2",
     "mongoose-validate": "0.0.5",
     "node-uuid": "^1.4.3",
-    "slug": "^0.9.1"
+    "slug": "^0.9.1",
+    "spore": "git+ssh://git@github.com:Teleborder/spore-node.git"
   }
 }

@@ -1,3 +1,7 @@
+require('spore').loadEnvSync();
+
+console.log(process.env.MANDRILL_APIKEY);
+
 var express = require('express'),
     settings = require('./settings'),
     middleware = require('./middleware'),
