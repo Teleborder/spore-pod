@@ -7,17 +7,20 @@
       "NODE_ENV": "f109446c-cd5a-47ae-b113-09e2b772b3d0",
       "APP_NAME": "35e205ce-856e-4ccc-8d40-65d3ad930b4e",
       "MONGO_URI": "b957bc80-dc14-4096-b8ff-b39470360383",
-      "PORT": "65189136-1efd-438e-ab63-e3e51dbf1ed7"
+      "PORT": "65189136-1efd-438e-ab63-e3e51dbf1ed7",
+      "HOSTNAME": "44ff211f-f60a-4d79-8a8a-130c58ff0b7d"
     },
     "staging": {
       "MANDRILL_APIKEY": "031b1942-8542-4c35-8a27-8c2345f36d4f",
       "NODE_ENV": "347ec90f-fe28-4b2e-9ff7-232716fd3bc0",
-      "MONGO_URI": "8bf4efe7-bc5e-474a-9a1c-12aec0063bc3"
+      "MONGO_URI": "8bf4efe7-bc5e-474a-9a1c-12aec0063bc3",
+      "HOSTNAME": "db153487-9cac-4cd6-aa7c-a433bee44b13"
     },
     "production": {
       "MANDRILL_APIKEY": "dffbcd19-d530-4e2f-9741-27e48a04dfcc",
       "NODE_ENV": "8dbd2ca3-c699-494d-a31d-0906e5b1962b",
-      "MONGO_URI": "d764559d-98cf-4a7a-ba1e-589bb0b20e34"
+      "MONGO_URI": "d764559d-98cf-4a7a-ba1e-589bb0b20e34",
+      "HOSTNAME": "d80e3bb6-b684-4f32-9443-f6176b4c6674"
     }
   },
   "__comments": [
