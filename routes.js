@@ -120,11 +120,11 @@ function envAccess(req, res, next) {
 function loginAsUserOrDeployment(req, res, next) {
   var auth = basicAuth(req);
 
-  if(!auth || !auth.user) {
+  if(!auth || !auth.name) {
     return failAuth(req, res, next);
   }
 
-  if(auth.user.indexOf('@') !== -1) {
+  if(auth.name.indexOf('@') !== -1) {
     return loginAsUser(req, res, next);
   }
 
@@ -138,7 +138,7 @@ function loginAsUser(req, res, next) {
     return failAuth(req, res, next);
   }
 
-  User.loginWithKey(auth.user, auth.pass, function (err, user, memberships) {
+  User.loginWithKey(auth.name, auth.pass, function (err, user, memberships) {
     if(err) return next(err);
 
     req.user = user;
@@ -155,7 +155,7 @@ function loginAsDeployment(req, res, next) {
     return failAuth(req, res, next);
   }
 
-  Deployment.loginWithKey(req.app._id, req.params.env_name, auth.user, auth.pass, function (err, deployment) {
+  Deployment.loginWithKey(req.app._id, req.params.env_name, auth.name, auth.pass, function (err, deployment) {
     if(err) return next(err);
 
     req.deployment = deployment;
