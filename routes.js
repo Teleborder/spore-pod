@@ -24,7 +24,7 @@ function routes(app) {
 
   app.get('/apps', loginAsUser, apps.list);
   app.post('/apps', loginAsUser, apps.create);
-  app.get('/apps/:app_id', loginAsUser, apps.show);
+  app.get('/apps/:app_id', loginAsUser, appAccess, apps.show);
   app.post('/apps/:app_id', loginAsUser, appOwner, apps.update);
 
   app.get('/apps/:app_id/envs/:env_name/deployments', loginAsUser, appAccess, envAccess, deployments.list);
