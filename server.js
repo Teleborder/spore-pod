@@ -34,7 +34,7 @@ app.use(function(err, req, res, next) {
   };
 
   if(app.get('env') === 'development') {
-    error.statck = err.stack;
+    error.stack = err.stack;
   }
 
   res.json({

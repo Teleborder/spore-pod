@@ -32,6 +32,7 @@ exports.show = function (req, res, next) {
     }
     if(err) return next(err);
 
+    res.set('Cache-Control', "max-age=31536000");
     res.json(serialize('cell', cell));
   });
 };
