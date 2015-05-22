@@ -43,6 +43,10 @@ membershipSchema.statics.ensureForEnv = function (memberId, appId, envNames, cal
 
   envNames = envNames || [];
 
+  if(!Array.isArray(envNames)) {
+    envNames = [envNames];
+  }
+
   Membership.findOne({
     app: appId,
     member: memberId
