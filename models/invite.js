@@ -112,7 +112,9 @@ inviteSchema.statics.redeemToken = function (user, token, callback) {
   Invite.findByToken(token, function (err, invite) {
     if(err) return callback(err);
 
-    user.verifyEmail(email, function (err, user) {
+    user.verifyEmail(invite.email, function (err) {
+      if(err) return callback(err);
+
       Membership.ensureForEnv(user._id, invite.app, invite.environment, function (err) {
         if(err) return callback(err);
 
