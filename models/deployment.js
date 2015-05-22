@@ -106,7 +106,21 @@ deploymentSchema.statics.loginWithKey = function (appId, envName, deploymentName
 };
 
 deploymentSchema.methods.environmentVariable = function (key) {
-  return [[[this.name, this.environment, this.app.uid].join('+'), key].join(':'), process.env.HOSTNAME].join('@');
+  var envVar = "[proto]://[name]+[environment]+[app]:[key]@[hostname]",
+      context = {
+        proto: process.env.PROTOCOL || 'https',
+        name: this.name,
+        environment: this.environment,
+        app: this.app.uid,
+        key: key,
+        hostname: process.env.HOSTNAME || 'pod.spore.sh'
+      };
+
+  Object.keys(context).forEach(function (p) {
+    envVar = envVar.replace('[' + p + ']', context[p]);
+  });
+
+  return envVar;
 };
 
 deploymentSchema.methods.generateKey = function () {
