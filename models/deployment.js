@@ -23,7 +23,7 @@ var deploymentSchema = new mongoose.Schema({
   }
 });
 
-deploymentSchema.index({ member: 1, app: 1, name: 1 }, { unique: true });
+deploymentSchema.index({ app: 1, environment: 1, name: 1 }, { unique: true });
 
 deploymentSchema.pre('validate', function (next) {
   this.environment = slug(this.environment);
@@ -34,11 +34,11 @@ deploymentSchema.pre('validate', function (next) {
   next();
 });
 
-deploymentSchema.statics.create = function (appId, envName, deploymentName, callback) {
+deploymentSchema.statics.create = function (app, envName, deploymentName, callback) {
   var Deployment = this;
 
   var deployment = new Deployment({
-    app: appId,
+    app: app._id,
     environment: envName,
     name: deploymentName
   });
@@ -46,17 +46,15 @@ deploymentSchema.statics.create = function (appId, envName, deploymentName, call
   var key = deployment.generateKey();
 
   deployment.save(function (err) {
-    if(err && err.code === 11000 && err.errmsg && err.errmsg.indexOf('member_1_app_1_name_1') !== -1) {
+    if(err && err.code === 11000 && err.errmsg && err.errmsg.indexOf('app_1_environment_1_name_1') !== -1) {
       err = new Error("A deployment named `" + deployment.name + "` already exists for " + app.name + "/" + deployment.environment);
       err.status = 409;
     }
     if(err) return callback(err);
 
-    Deployment.populate(deployment, { path: 'app' }, function (err, deployment) {
-      if(err) return callback(err);
+    deployment.app = app;
 
-      callback(null, deployment, key);
-    });
+    callback(null, deployment, key);
   });
 };
 

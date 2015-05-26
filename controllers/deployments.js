@@ -10,7 +10,7 @@ exports.list = function (req, res, next) {
 };
 
 exports.create = function (req, res, next) {
-  Deployment.create(req.app._id, req.params.env_name, req.body.name, function (err, deployment, key) {
+  Deployment.create(req.app, req.params.env_name, req.body.name, function (err, deployment, key) {
     if(err) return next(err);
 
     var envVar = deployment.environmentVariable(key);
