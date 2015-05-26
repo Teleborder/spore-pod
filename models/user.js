@@ -77,7 +77,7 @@ userSchema.statics._handleCreate = function(callback) {
         // do something here?
       } else if(err.code === 11000 && err.errmsg && err.errmsg.indexOf('email_1') > -1) {
         err = new Error("Account with that email already exists");
-        err.status = 400;
+        err.status = 409;
       }
       return callback(err);
     }

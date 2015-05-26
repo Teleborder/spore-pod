@@ -46,6 +46,10 @@ deploymentSchema.statics.create = function (appId, envName, deploymentName, call
   var key = deployment.generateKey();
 
   deployment.save(function (err) {
+    if(err && err.code === 11000 && err.errmsg && err.errmsg.indexOf('member_1_app_1_name_1') !== -1) {
+      err = new Error("A deployment named `" + deployment.name + "` already exists for " + app.name + "/" + deployment.environment);
+      err.status = 409;
+    }
     if(err) return callback(err);
 
     Deployment.populate(deployment, { path: 'app' }, function (err, deployment) {

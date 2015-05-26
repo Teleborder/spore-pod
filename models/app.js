@@ -49,6 +49,10 @@ appSchema.statics.byMembershipsAndId = function (memberships, appId, callback) {
   this.findOne({
     uid: appId
   }).exec(function (err, app) {
+    if(!err && !app) {
+      err = new Error("No Such App");
+      err.status = 404;
+    }
     if(err) return callbacK(err);
 
     for(var i=0; i<memberships.length; i++) {

@@ -103,6 +103,7 @@ function envAccess(req, res, next) {
   if(req.app.owner.toString() === req.user._id.toString()) {
     return next();
   }
+
   // check if they've been granted access by another user
   if(req.appMembership.canAccess(req.params.env_name)) {
     // can't access non-owned apps without confirming email
