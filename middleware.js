@@ -8,6 +8,7 @@ function middleware(app) {
   if(app.get('env') === 'development') {
     app.use(function (req, res, next) {
       console.log(req.method + " " + req.originalUrl);
+      console.log(req.headers);
       next();
     });
   }
