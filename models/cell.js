@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
     isUuid = require('../utils/is_uuid'),
-    slug = require('slug');
+    slug = require('slug'),
+    tomb = require('./tomb');
 
 var cellSchema = new mongoose.Schema({
   uid: {
@@ -41,18 +42,43 @@ cellSchema.pre('validate', function (next) {
 cellSchema.statics.create = function (uid, params, callback) {
   var cell,
       Cell = this,
-      err;
+      value;
+
+  try {
+    value = tomb.encrypt(params.value);
+  } catch(e) {
+    return callback(e);
+  }
 
   cell = new Cell({
     uid: uid,
     key: params.key,
-    value: params.value,
+    value: value,
     app: params.app,
     environment: params.environment,
     creator: params.creator
   });
 
   cell.save(callback);
+};
+
+cellSchema.statics.get = function (appId, envName, cellId, callback) {
+  this.findOne({
+    uid: cellId,
+    app: appId,
+    environment: envName
+  }).exec(function (err, cell) {
+    if(err) return callback(err);
+
+    try {
+      cell.value = tomb.decrypt(cell.value);
+    } catch(e) {
+      return callback(e);
+    }
+
+    callback(null, cell);
+  });
+
 };
 
 var Cell = mongoose.model('Cell', cellSchema);

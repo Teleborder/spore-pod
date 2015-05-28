@@ -21,11 +21,7 @@ exports.create = function (req, res, next) {
 
 // Show a single cell
 exports.show = function (req, res, next) {
-  Cell.findOne({
-    uid: req.params.cell_id,
-    app: req.app._id,
-    environment: req.params.env_name
-  }).exec(function (err, cell) {
+  Cell.get(req.app._id, req.params.env_name, req.params.cell_id, function (err, cell) {
     if(!err && !cell) {
       err = new Error("No Such Cell");
       err.status = 404;
