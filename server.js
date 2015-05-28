@@ -23,7 +23,9 @@ app.use(function(err, req, res, next) {
   console.log(err);
   console.log(err.stack);
 
-  if(err.status) {
+  // mandrill error's have a status of 'error', so
+  // we need to make sure this is an http status
+  if(err.status && parseInt(err.status, 10) > 100) {
     res.status(err.status);
   } else {
     res.status(500);
