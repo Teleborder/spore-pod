@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Trey Griffith <trey@teleborder.com>",
-  "license": "",
+  "author": "Trey Griffith <trey@tgriff3.com>",
+  "license": "MIT",
   "dependencies": {
     "async": "^0.9.0",
     "basic-auth": "^1.0.1",
