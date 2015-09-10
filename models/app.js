@@ -53,7 +53,7 @@ appSchema.statics.byMembershipsAndId = function (memberships, appId, callback) {
       err = new Error("No Such App");
       err.status = 404;
     }
-    if(err) return callbacK(err);
+    if(err) return callback(err);
 
     for(var i=0; i<memberships.length; i++) {
       if(memberships[i].app.toString() === app._id.toString()) {
