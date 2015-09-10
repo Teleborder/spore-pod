@@ -17,7 +17,7 @@ function middleware(app) {
   app.use(function (req, res, next) {
     // heroku sets `x-forwarded-proto` when proxying
     if(app.get('env') === 'production' && !req.secure && req.headers['x-forwarded-proto'] !== 'https') {
-      res.redirect('https://' + req.hostname + ':' + app.address().port + req.originalUrl);
+      res.redirect('https://' + req.hostname + req.originalUrl);
     }
 
     next();
